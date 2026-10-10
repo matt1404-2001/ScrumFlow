@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Selecciona o crea un proyecto para continuar trabajando en ScrumFlow.">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Tus proyectos | ScrumFlow</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233156d9'/%3E%3Cpath d='M8 10h16M8 16h10M8 22h6' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='22' r='2.5' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/paginas/proyectos.css">
+    <script type="module" src="../js/paginas/proyectos.js"></script>
+  </head>
+  <body>
+    <!--
+      THESIS: Elegir el contexto de trabajo debe sentirse como retomar el hilo, no administrar un sistema.
+      OWN-WORLD: El lienzo claro, azul profundo y señales breves de estado extienden la identidad actual de ScrumFlow.
+      STORY: La persona reconoce sus proyectos, atiende invitaciones pendientes y puede abrir un espacio nuevo sin salir de la vista.
+      FIRST VIEWPORT: Cabecera compacta, bienvenida y acción principal arriba; proyectos dominantes e invitaciones en una columna auxiliar.
+      FORM: Extensión directa del calm workflow canvas existente para una superficie de operación.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <a class="saltar-contenido" href="#contenido-principal">Saltar al contenido principal</a>
+
+    <header class="cabecera-aplicacion">
+      <div class="contenedor cabecera-aplicacion__interior">
+        <a class="marca" href="../" aria-label="ScrumFlow, página de inicio">
+          <svg class="marca__simbolo" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M7 9.5h18M7 16h12M7 22.5h7"></path>
+            <circle cx="25" cy="22.5" r="2.5"></circle>
+          </svg>
+          <span>ScrumFlow</span>
+        </a>
+
+        <div class="perfil-usuario" aria-label="Cuenta de usuario">
+          <span class="perfil-usuario__avatar" aria-hidden="true">ML</span>
+          <span class="perfil-usuario__nombre">María López</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido-principal" class="contenedor selector-proyectos">
+      <header class="selector-proyectos__cabecera">
+        <div>
+          <h1>Elige dónde continuar.</h1>
+          <p>Selecciona uno de tus proyectos o crea un espacio nuevo para tu equipo.</p>
+        </div>
+        <button class="boton boton--principal" type="button" data-abrir-modal>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"></path></svg>
+          Crear proyecto
+        </button>
+      </header>
+
+      <div class="selector-proyectos__contenido">
+        <section class="proyectos" aria-labelledby="titulo-proyectos">
+          <div class="seccion-cabecera">
+            <h2 id="titulo-proyectos">Tus proyectos</h2>
+            <span class="seccion-cabecera__conteo" data-conteo-proyectos></span>
+          </div>
+          <div class="proyectos__lista" data-lista-proyectos></div>
+        </section>
+
+        <aside class="invitaciones" aria-labelledby="titulo-invitaciones">
+          <div class="seccion-cabecera">
+            <h2 id="titulo-invitaciones">Invitaciones pendientes</h2>
+            <span class="insignia-conteo" data-conteo-invitaciones></span>
+          </div>
+          <div class="invitaciones__lista" data-lista-invitaciones></div>
+        </aside>
+      </div>
+    </main>
+
+    <dialog class="modal-proyecto" data-modal-proyecto aria-labelledby="titulo-modal-proyecto">
+      <form class="modal-proyecto__contenido" data-formulario-proyecto novalidate>
+        <header class="modal-proyecto__cabecera">
+          <div>
+            <h2 id="titulo-modal-proyecto">Crear proyecto</h2>
+            <p>Empieza con un nombre claro. Podrás configurar el equipo dentro del proyecto.</p>
+          </div>
+          <button class="boton-icono" type="button" data-cerrar-modal aria-label="Cerrar modal">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"></path></svg>
+          </button>
+        </header>
+
+        <div class="campo-proyecto">
+          <label for="nombre-proyecto">Nombre del proyecto</label>
+          <input id="nombre-proyecto" name="nombre" type="text" maxlength="150" autocomplete="off" required aria-describedby="nombre-proyecto-error">
+          <span class="campo-proyecto__error" id="nombre-proyecto-error" aria-live="polite"></span>
+        </div>
+
+        <div class="campo-proyecto">
+          <label for="descripcion-proyecto">Descripción <span>Opcional</span></label>
+          <textarea id="descripcion-proyecto" name="descripcion" rows="4" maxlength="320" placeholder="¿Qué quiere lograr este equipo?"></textarea>
+        </div>
+
+        <p class="modal-proyecto__estado" role="status" aria-live="polite"></p>
+
+        <footer class="modal-proyecto__acciones">
+          <button class="boton boton--secundario" type="button" data-cerrar-modal>Cancelar</button>
+          <button class="boton boton--principal" type="submit">Crear proyecto</button>
+        </footer>
+      </form>
+    </dialog>
+  </body>
+</html>

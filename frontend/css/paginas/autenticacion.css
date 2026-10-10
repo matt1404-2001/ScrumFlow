@@ -1,0 +1,344 @@
+.autenticacion {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  grid-template-columns: minmax(360px, 0.86fr) minmax(520px, 1.14fr);
+}
+
+.autenticacion__contexto {
+  position: relative;
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: clamp(32px, 5vw, 64px);
+  background: #1f3ea9;
+  color: #ffffff;
+}
+
+.autenticacion__contexto::before,
+.autenticacion__contexto::after {
+  position: absolute;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 7%);
+  content: "";
+  pointer-events: none;
+}
+
+.autenticacion__contexto::before {
+  top: -18vw;
+  left: -20vw;
+  width: 48vw;
+  height: 48vw;
+}
+
+.autenticacion__contexto::after {
+  right: -14vw;
+  bottom: -17vw;
+  width: 38vw;
+  height: 38vw;
+}
+
+.marca {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--fuente-titulo);
+  font-size: 1.17rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.marca__simbolo {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: var(--color-primario);
+  stroke-linecap: round;
+  stroke-width: 2.2;
+}
+
+.marca__simbolo circle {
+  fill: var(--color-primario);
+  stroke: none;
+}
+
+.marca--clara .marca__simbolo {
+  stroke: #ffffff;
+}
+
+.marca--clara .marca__simbolo circle {
+  fill: #ffffff;
+}
+
+.autenticacion__mensaje {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 430px);
+  margin-block: 80px;
+}
+
+.autenticacion__mensaje > p {
+  max-width: 13ch;
+  margin: 0 0 48px;
+  font-family: var(--fuente-titulo);
+  font-size: clamp(2.5rem, 4.4vw, 4.7rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.99;
+  text-wrap: balance;
+}
+
+.recorrido {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recorrido::before {
+  position: absolute;
+  top: 6px;
+  right: 11%;
+  left: 11%;
+  height: 2px;
+  background: rgb(255 255 255 / 22%);
+  content: "";
+}
+
+.recorrido__paso {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  color: rgb(255 255 255 / 62%);
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.recorrido__paso span {
+  z-index: 1;
+  width: 13px;
+  height: 13px;
+  border: 3px solid #1f3ea9;
+  border-radius: 50%;
+  background: #7d91d8;
+  box-shadow: 0 0 0 1px #7d91d8;
+}
+
+.recorrido__paso--completo,
+.recorrido__paso--activo {
+  color: #ffffff;
+}
+
+.recorrido__paso--completo span,
+.recorrido__paso--activo span {
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #ffffff;
+}
+
+.recorrido__paso--activo span {
+  box-shadow: 0 0 0 1px #ffffff, 0 0 0 5px rgb(255 255 255 / 17%);
+}
+
+.volver-inicio {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  gap: 8px;
+  color: rgb(255 255 255 / 78%);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 150ms ease-out;
+}
+
+.volver-inicio:hover {
+  color: #ffffff;
+}
+
+.volver-inicio svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.autenticacion__panel {
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  padding: clamp(48px, 8vw, 96px);
+  background: var(--color-fondo);
+}
+
+.formulario-autenticacion {
+  width: min(100%, 430px);
+}
+
+.marca--movil {
+  display: none;
+  margin-bottom: 56px;
+}
+
+.formulario-autenticacion__cabecera {
+  margin-bottom: 36px;
+}
+
+.formulario-autenticacion h1 {
+  margin: 0;
+  color: #131c2f;
+  font-family: var(--fuente-titulo);
+  font-size: clamp(2.4rem, 4vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.formulario {
+  display: grid;
+  gap: 22px;
+}
+
+.campo {
+  display: grid;
+  gap: 8px;
+}
+
+.campo label {
+  color: #34415a;
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.campo input {
+  width: 100%;
+  min-height: 50px;
+  padding: 11px 14px;
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-sm);
+  background: #ffffff;
+  color: var(--color-texto);
+  caret-color: var(--color-primario);
+  outline: none;
+  transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+}
+
+.campo input:hover {
+  border-color: #aeb9cc;
+}
+
+.campo input:focus {
+  border-color: var(--color-primario);
+  box-shadow: 0 0 0 3px rgb(49 86 217 / 13%);
+}
+
+.campo input[aria-invalid="true"] {
+  border-color: #b33a3a;
+}
+
+.campo__error {
+  min-height: 1.15em;
+  color: #9e2f2f;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.formulario__estado {
+  min-height: 1.3em;
+  margin: -4px 0 0;
+  color: var(--color-texto-secundario);
+  font-size: 0.82rem;
+}
+
+.formulario__boton {
+  width: 100%;
+  margin-top: -4px;
+  cursor: pointer;
+}
+
+.cambio-vista {
+  margin: 28px 0 0;
+  color: var(--color-texto-secundario);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.cambio-vista a {
+  margin-left: 4px;
+  color: var(--color-primario);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.cambio-vista a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .autenticacion {
+    grid-template-columns: minmax(290px, 0.74fr) minmax(450px, 1.26fr);
+  }
+
+  .autenticacion__contexto,
+  .autenticacion__panel {
+    padding: 40px;
+  }
+
+  .autenticacion__mensaje > p {
+    font-size: clamp(2.4rem, 5.5vw, 3.5rem);
+  }
+}
+
+@media (max-width: 720px) {
+  .autenticacion {
+    display: block;
+  }
+
+  .autenticacion__contexto {
+    display: none;
+  }
+
+  .autenticacion__panel {
+    min-height: 100vh;
+    min-height: 100svh;
+    place-items: start center;
+    padding: 34px 24px 48px;
+  }
+
+  .marca--movil {
+    display: inline-flex;
+    margin-bottom: clamp(50px, 12vh, 88px);
+  }
+}
+
+@media (max-width: 420px) {
+  .autenticacion__panel {
+    padding-inline: 20px;
+  }
+
+  .formulario-autenticacion h1 {
+    font-size: 2.35rem;
+  }
+
+  .formulario-autenticacion__cabecera {
+    margin-bottom: 30px;
+  }
+
+  .formulario {
+    gap: 18px;
+  }
+}
