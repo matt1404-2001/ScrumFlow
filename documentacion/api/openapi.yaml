@@ -1,0 +1,3153 @@
+openapi: 3.0.3
+info:
+  title: ScrumFlow API
+  version: 1.0.0
+  description: >-
+    Contrato REST para el sistema académico ScrumFlow. Cubre los doce casos de
+    uso aprobados sin agregar funcionalidades fuera del alcance.
+servers:
+  - url: /
+    description: Servidor actual
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Projects
+  - name: Team
+  - name: Backlog
+  - name: Sprints
+  - name: Sprint Board
+  - name: Summary
+  - name: Daily
+  - name: Review
+  - name: Retrospective
+paths:
+  /api/autenticacion/registro:
+    post:
+      operationId: registerUser
+      summary: Registrar usuario
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Cuenta creada sin iniciar sesión.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/activar:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    post:
+      operationId: activateSprint
+      summary: Activar Sprint
+      tags: [Sprints]
+      responses:
+        '200':
+          description: Sprint activado con copia de la Definition of Done.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/tablero:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    get:
+      operationId: getSprintBoard
+      summary: Obtener tablero del Sprint
+      tags: [Sprint Board]
+      responses:
+        '200':
+          description: Tablero, progreso e impedimentos abiertos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintBoard'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/elementos/{sprintItemId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+      - $ref: '#/components/parameters/SprintItemId'
+    get:
+      operationId: getSprintItem
+      summary: Consultar tarjeta del Sprint
+      tags: [Sprint Board]
+      responses:
+        '200':
+          description: Detalle completo de la tarjeta.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintBoardItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateSprintItem
+      summary: Actualizar tarjeta, checklist y Definition of Done
+      description: >-
+        Si estado es TERMINADO, confirmarDod debe ser true. El backend registra
+        automáticamente el miembro autenticado y el momento de confirmación.
+      tags: [Sprint Board]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SprintItemPatchRequest'
+      responses:
+        '200':
+          description: Tarjeta actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintBoardItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/elementos/{sprintItemId}/comentarios:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+      - $ref: '#/components/parameters/SprintItemId'
+    post:
+      operationId: createSprintComment
+      summary: Publicar comentario en una tarjeta
+      tags: [Sprint Board]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+      responses:
+        '201':
+          description: Comentario registrado con autor y fecha.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintComment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/impedimentos:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    post:
+      operationId: createImpediment
+      summary: Registrar impedimento
+      tags: [Sprint Board]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImpedimentCreateRequest'
+      responses:
+        '201':
+          description: Impedimento abierto registrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Impediment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/impedimentos/{impedimentId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+      - $ref: '#/components/parameters/ImpedimentId'
+    patch:
+      operationId: resolveImpediment
+      summary: Resolver impedimento
+      tags: [Sprint Board]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImpedimentResolveRequest'
+      responses:
+        '200':
+          description: Impedimento resuelto con miembro y fecha.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Impediment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/iniciar-cierre:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    post:
+      operationId: startSprintClosing
+      summary: Iniciar cierre del Sprint
+      tags: [Sprints]
+      responses:
+        '200':
+          description: Sprint En cierre y tablero bloqueado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintClosingResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/resumen:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: getProjectSummary
+      summary: Consultar resumen y guía del proyecto
+      tags: [Summary]
+      responses:
+        '200':
+          description: Estado agregado, recomendación principal y alertas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDashboardSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/reuniones-diarias/hoy:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    get:
+      operationId: getTodayDaily
+      summary: Consultar detalle de la Daily del día
+      tags: [Daily]
+      responses:
+        '200':
+          description: Daily completa o representación virtual Programada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/reuniones-diarias/iniciar:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    post:
+      operationId: startDaily
+      summary: Iniciar Daily explícitamente
+      tags: [Daily]
+      responses:
+        '201':
+          description: Daily En curso con integrantes esperados e iniciador presente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/reuniones-diarias/{dailyId}/unirse:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+      - $ref: '#/components/parameters/DailyId'
+    post:
+      operationId: joinDaily
+      summary: Unirse a la Daily
+      tags: [Daily]
+      responses:
+        '200':
+          description: Participación registrada o recuperada sin duplicarla.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyJoinResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/reuniones-diarias/{dailyId}/mensajes:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+      - $ref: '#/components/parameters/DailyId'
+    post:
+      operationId: createDailyMessage
+      summary: Publicar mensaje, avance o impedimento
+      tags: [Daily]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DailyMessageCreateRequest'
+      responses:
+        '201':
+          description: Publicación registrada y posible impedimento creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyMessageCreateResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/reuniones-diarias/{dailyId}/finalizar:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+      - $ref: '#/components/parameters/DailyId'
+    post:
+      operationId: finishDaily
+      summary: Finalizar Daily
+      tags: [Daily]
+      responses:
+        '200':
+          description: Daily Finalizada y ausencias determinadas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyFinishResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/reuniones-diarias:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    get:
+      operationId: listSprintDailies
+      summary: Consultar historial completo de Dailies
+      tags: [Daily]
+      responses:
+        '200':
+          description: Dailies ordenadas desde la más reciente con detalle suficiente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/autenticacion/inicio-sesion:
+    post:
+      operationId: login
+      summary: Iniciar sesión y obtener JWT
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Credenciales válidas y JWT emitido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos:
+    get:
+      operationId: listUserProjects
+      summary: Listar proyectos del usuario
+      tags: [Projects]
+      responses:
+        '200':
+          description: Proyectos con membresía activa.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProjectSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createProject
+      summary: Crear proyecto Scrum
+      tags: [Projects]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateRequest'
+      responses:
+        '201':
+          description: Proyecto y membresía administrativa creados.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: getProject
+      summary: Consultar proyecto
+      tags: [Projects]
+      responses:
+        '200':
+          description: Detalle del proyecto y membresía actual.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      operationId: updateProject
+      summary: Editar proyecto y Definition of Done
+      tags: [Projects]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectPatchRequest'
+      responses:
+        '200':
+          description: Proyecto actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/invitaciones:
+    get:
+      operationId: listUserInvitations
+      summary: Consultar invitaciones del usuario
+      tags: [Team]
+      parameters:
+        - $ref: '#/components/parameters/InvitationState'
+      responses:
+        '200':
+          description: Invitaciones dirigidas al usuario.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invitation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/invitaciones:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    post:
+      operationId: createProjectInvitation
+      summary: Invitar usuario registrado
+      tags: [Team]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationCreateRequest'
+      responses:
+        '201':
+          description: Invitación interna creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invitation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/invitaciones/{invitationId}:
+    parameters:
+      - $ref: '#/components/parameters/InvitationId'
+    patch:
+      operationId: respondInvitation
+      summary: Aceptar o rechazar invitación
+      tags: [Team]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationDecisionRequest'
+      responses:
+        '200':
+          description: Invitación respondida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationDecisionResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/equipo:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: getProjectTeam
+      summary: Consultar equipo y acuerdos
+      tags: [Team]
+      responses:
+        '200':
+          description: Equipo, responsabilidades, DoD e invitaciones visibles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/equipo/{memberId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/MemberId'
+    patch:
+      operationId: updateTeamMember
+      summary: Modificar permiso y responsabilidades del integrante
+      tags: [Team]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamMemberPatchRequest'
+      responses:
+        '200':
+          description: Integrante actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: removeTeamMember
+      summary: Retirar integrante del proyecto
+      tags: [Team]
+      responses:
+        '204':
+          description: Integrante retirado; historial conservado.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/pila-producto:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: getProductBacklog
+      summary: Consultar Product Goal y backlog
+      tags: [Backlog]
+      parameters:
+        - $ref: '#/components/parameters/IncludeRetired'
+      responses:
+        '200':
+          description: Product Goal y elementos con información completa para el panel lateral.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacklogResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createBacklogItem
+      summary: Crear elemento del Product Backlog
+      tags: [Backlog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BacklogCreateRequest'
+      responses:
+        '201':
+          description: Elemento creado al final del backlog.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacklogItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/objetivo-producto:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    put:
+      operationId: updateProductGoal
+      summary: Actualizar Product Goal
+      tags: [Backlog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductGoalRequest'
+      responses:
+        '200':
+          description: Product Goal actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductGoalResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/pila-producto/{itemId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/BacklogItemId'
+    patch:
+      operationId: updateBacklogItem
+      summary: Editar o refinar elemento del backlog
+      tags: [Backlog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BacklogPatchRequest'
+      responses:
+        '200':
+          description: Elemento actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacklogItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      operationId: removeBacklogItem
+      summary: Retirar o eliminar elemento del backlog
+      tags: [Backlog]
+      responses:
+        '200':
+          description: Resultado del retiro o eliminación.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacklogRemovalResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/pila-producto/orden:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    put:
+      operationId: reorderBacklog
+      summary: Reordenar Product Backlog
+      tags: [Backlog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BacklogOrderRequest'
+      responses:
+        '200':
+          description: Posiciones actualizadas.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BacklogOrderItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/pila-producto/{itemId}/dividir:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/BacklogItemId'
+    post:
+      operationId: splitBacklogItem
+      summary: Dividir elemento del Product Backlog
+      tags: [Backlog]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BacklogSplitRequest'
+      responses:
+        '201':
+          description: Elementos independientes creados y original retirado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BacklogSplitResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/actual:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: getCurrentSprint
+      summary: Consultar Sprint no finalizado
+      tags: [Sprints]
+      responses:
+        '200':
+          description: Sprint Borrador, Activo o En cierre.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+    get:
+      operationId: listProjectSprints
+      summary: Consultar historial de Sprints
+      tags: [Sprints]
+      parameters:
+        - $ref: '#/components/parameters/SprintState'
+      responses:
+        '200':
+          description: Sprints del proyecto.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SprintSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      operationId: createSprintDraft
+      summary: Crear Sprint en Borrador
+      tags: [Sprints]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SprintDraftRequest'
+      responses:
+        '201':
+          description: Sprint Borrador creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    patch:
+      operationId: updateSprintDraft
+      summary: Modificar planificación del Sprint
+      description: >-
+        Actualiza campos opcionales del Borrador, incluida la selección completa
+        mediante selectedItemIds.
+      tags: [Sprints]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SprintDraftUpdateRequest'
+      responses:
+        '200':
+          description: Planificación guardada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/revision:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    get:
+      operationId: getSprintReview
+      summary: Consultar Sprint Review
+      tags: [Review]
+      responses:
+        '200':
+          description: Review, incremento calculado y trabajo incompleto.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintReview'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: saveSprintReview
+      summary: Guardar borrador de Sprint Review
+      tags: [Review]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SprintReviewDraftRequest'
+      responses:
+        '200':
+          description: Review guardada como Borrador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintReview'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/revision/completar:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    post:
+      operationId: completeSprintReview
+      summary: Completar Sprint Review
+      tags: [Review]
+      responses:
+        '200':
+          description: Review completada y Retrospectiva habilitada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewCompleteResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/retrospectiva:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    get:
+      operationId: getSprintRetrospective
+      summary: Consultar Sprint Retrospective
+      tags: [Retrospective]
+      responses:
+        '200':
+          description: Retrospectiva y acciones de mejora.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintRetrospective'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    put:
+      operationId: saveSprintRetrospective
+      summary: Guardar borrador de Sprint Retrospective
+      tags: [Retrospective]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SprintRetrospectiveDraftRequest'
+      responses:
+        '200':
+          description: Retrospectiva guardada como Borrador.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SprintRetrospective'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/retrospectiva/acciones/{actionId}/elemento-pila-producto:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+      - $ref: '#/components/parameters/ActionId'
+    post:
+      operationId: convertImprovementAction
+      summary: Convertir acción de mejora en elemento del backlog
+      tags: [Retrospective]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImprovementActionConvertRequest'
+      responses:
+        '201':
+          description: Elemento de backlog creado y enlazado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImprovementActionConversionResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/proyectos/{projectId}/sprints/{sprintId}/retrospectiva/completar:
+    parameters:
+      - $ref: '#/components/parameters/ProjectId'
+      - $ref: '#/components/parameters/SprintId'
+    post:
+      operationId: completeSprintRetrospective
+      summary: Completar Retrospectiva y finalizar Sprint
+      tags: [Retrospective]
+      responses:
+        '200':
+          description: Retrospectiva y Sprint finalizados atómicamente.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RetrospectiveCompleteResult'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT emitido por POST /api/autenticacion/inicio-sesion.
+
+  parameters:
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      description: Identificador del proyecto.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    InvitationId:
+      name: invitationId
+      in: path
+      required: true
+      description: Identificador de la invitación.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      description: Identificador de la membresía del proyecto.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    BacklogItemId:
+      name: itemId
+      in: path
+      required: true
+      description: Identificador del elemento del Product Backlog.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    SprintId:
+      name: sprintId
+      in: path
+      required: true
+      description: Identificador del Sprint.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    SprintItemId:
+      name: sprintItemId
+      in: path
+      required: true
+      description: Identificador del elemento dentro del Sprint.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    ImpedimentId:
+      name: impedimentId
+      in: path
+      required: true
+      description: Identificador del impedimento.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    DailyId:
+      name: dailyId
+      in: path
+      required: true
+      description: Identificador de la Daily Scrum.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    ActionId:
+      name: actionId
+      in: path
+      required: true
+      description: Identificador de la acción de mejora.
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    InvitationState:
+      name: estado
+      in: query
+      required: false
+      description: Filtra las invitaciones por estado.
+      schema:
+        $ref: '#/components/schemas/InvitationState'
+    IncludeRetired:
+      name: includeRetired
+      in: query
+      required: false
+      description: Incluye elementos retirados del backlog.
+      schema:
+        type: boolean
+        default: false
+    SprintState:
+      name: estado
+      in: query
+      required: false
+      description: Filtra los Sprints por estado.
+      schema:
+        $ref: '#/components/schemas/SprintState'
+
+  responses:
+    BadRequest:
+      description: Solicitud mal formada o parámetros inválidos.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: JWT ausente, inválido o expirado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: El usuario autenticado no tiene permiso para la operación.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso inexistente o no visible para el usuario.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: La operación contradice el estado actual o una regla de unicidad.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ValidationError:
+      description: Uno o más datos no cumplen las validaciones funcionales.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+    InternalError:
+      description: Error interno no esperado.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    Priority:
+      type: string
+      enum: [BAJA, MEDIA, ALTA]
+    InvitationState:
+      type: string
+      enum: [PENDIENTE, ACEPTADA, RECHAZADA]
+    SprintState:
+      type: string
+      enum: [BORRADOR, ACTIVO, EN_CIERRE, FINALIZADO]
+    SprintItemState:
+      type: string
+      enum: [PENDIENTE, EN_PROGRESO, TERMINADO]
+    ImpedimentState:
+      type: string
+      enum: [ABIERTO, RESUELTO]
+    DailyState:
+      type: string
+      enum: [PROGRAMADA, EN_CURSO, FINALIZADA]
+    DailyMessageType:
+      type: string
+      enum: [MENSAJE, AVANCE, IMPEDIMENTO]
+    EventRecordState:
+      type: string
+      enum: [BORRADOR, COMPLETADA]
+
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [nombre, correo, contrasena, confirmacionContrasena]
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 150
+        correo:
+          type: string
+          format: email
+          maxLength: 254
+        contrasena:
+          type: string
+          format: password
+          minLength: 12
+          description: Debe contener al menos un número y un símbolo.
+        confirmacionContrasena:
+          type: string
+          format: password
+          minLength: 12
+          description: Debe coincidir con contrasena.
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [correo, contrasena]
+      properties:
+        correo:
+          type: string
+          format: email
+        contrasena:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      additionalProperties: false
+      required: [token, expiresAt, user]
+      properties:
+        token:
+          type: string
+          description: JWT firmado por el backend.
+        expiresAt:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/UserSummary'
+    UserSummary:
+      type: object
+      additionalProperties: false
+      required: [userId, nombre, correo]
+      properties:
+        userId:
+          type: integer
+          format: int64
+          minimum: 1
+        nombre:
+          type: string
+        correo:
+          type: string
+          format: email
+    MemberSummary:
+      type: object
+      additionalProperties: false
+      required: [miembroProyectoId, userId, nombre]
+      properties:
+        miembroProyectoId:
+          type: integer
+          format: int64
+          minimum: 1
+        userId:
+          type: integer
+          format: int64
+          minimum: 1
+        nombre:
+          type: string
+    ProjectMembership:
+      type: object
+      additionalProperties: false
+      required: [miembroProyectoId, esAdministrador, esProductOwner, esScrumMaster, esDeveloper]
+      properties:
+        miembroProyectoId:
+          type: integer
+          format: int64
+          minimum: 1
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        userId:
+          type: integer
+          format: int64
+          minimum: 1
+        esAdministrador:
+          type: boolean
+        esProductOwner:
+          type: boolean
+        esScrumMaster:
+          type: boolean
+        esDeveloper:
+          type: boolean
+    ProjectSummary:
+      type: object
+      additionalProperties: false
+      required: [projectId, nombre, descripcion, esAdministrador]
+      properties:
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        nombre:
+          type: string
+        descripcion:
+          type: string
+          nullable: true
+        esAdministrador:
+          type: boolean
+    ProjectCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [nombre]
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 150
+        descripcion:
+          type: string
+          nullable: true
+    ProjectPatchRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 150
+        descripcion:
+          type: string
+          nullable: true
+        definitionOfDone:
+          type: string
+          nullable: true
+          description: Acuerdo vigente del equipo como texto multilínea.
+    ProjectDetail:
+      type: object
+      additionalProperties: false
+      required: [projectId, nombre, descripcion, productGoal, definitionOfDone, currentUserMembership]
+      properties:
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        nombre:
+          type: string
+        descripcion:
+          type: string
+          nullable: true
+        productGoal:
+          type: string
+          nullable: true
+        definitionOfDone:
+          type: string
+          nullable: true
+        currentUserMembership:
+          $ref: '#/components/schemas/ProjectMembership'
+    ProjectReference:
+      type: object
+      additionalProperties: false
+      required: [projectId, nombre]
+      properties:
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        nombre:
+          type: string
+    Invitation:
+      type: object
+      additionalProperties: false
+      required: [invitationId, estado, fechaCreacion]
+      properties:
+        invitationId:
+          type: integer
+          format: int64
+          minimum: 1
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        project:
+          $ref: '#/components/schemas/ProjectReference'
+        usuarioInvitado:
+          $ref: '#/components/schemas/UserSummary'
+        invitadoPor:
+          $ref: '#/components/schemas/UserSummary'
+        estado:
+          $ref: '#/components/schemas/InvitationState'
+        fechaCreacion:
+          type: string
+          format: date-time
+        fechaRespuesta:
+          type: string
+          format: date-time
+          nullable: true
+    InvitationCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [correo]
+      properties:
+        correo:
+          type: string
+          format: email
+    InvitationDecisionRequest:
+      type: object
+      additionalProperties: false
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [ACEPTAR, RECHAZAR]
+    InvitationDecisionResult:
+      type: object
+      additionalProperties: false
+      required: [invitationId, estado, fechaRespuesta, membership]
+      properties:
+        invitationId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          $ref: '#/components/schemas/InvitationState'
+        fechaRespuesta:
+          type: string
+          format: date-time
+        membership:
+          allOf:
+            - $ref: '#/components/schemas/ProjectMembership'
+          nullable: true
+    TeamMember:
+      type: object
+      additionalProperties: false
+      required:
+        - miembroProyectoId
+        - usuario
+        - esAdministrador
+        - esProductOwner
+        - esScrumMaster
+        - esDeveloper
+        - activo
+      properties:
+        miembroProyectoId:
+          type: integer
+          format: int64
+          minimum: 1
+        usuario:
+          $ref: '#/components/schemas/UserSummary'
+        esAdministrador:
+          type: boolean
+        esProductOwner:
+          type: boolean
+        esScrumMaster:
+          type: boolean
+        esDeveloper:
+          type: boolean
+        activo:
+          type: boolean
+    TeamMemberPatchRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        esAdministrador:
+          type: boolean
+        esProductOwner:
+          type: boolean
+        esScrumMaster:
+          type: boolean
+        esDeveloper:
+          type: boolean
+    TeamResponse:
+      type: object
+      additionalProperties: false
+      required: [members, definitionOfDone, pendingInvitations]
+      properties:
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamMember'
+        definitionOfDone:
+          type: string
+          nullable: true
+        pendingInvitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invitation'
+    ProductGoalRequest:
+      type: object
+      additionalProperties: false
+      required: [productGoal]
+      properties:
+        productGoal:
+          type: string
+          nullable: true
+          description: Objetivo vigente del producto; null permite dejarlo pendiente.
+    ProductGoalResponse:
+      type: object
+      additionalProperties: false
+      required: [projectId, productGoal]
+      properties:
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        productGoal:
+          type: string
+          nullable: true
+    BacklogItem:
+      type: object
+      additionalProperties: false
+      required:
+        - elementoBacklogId
+        - titulo
+        - descripcion
+        - prioridad
+        - posicion
+        - estimacion
+        - criteriosAceptacion
+        - preparado
+        - faltantesPreparacion
+        - retirado
+        - sprintActualId
+      properties:
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        titulo:
+          type: string
+        descripcion:
+          type: string
+          nullable: true
+        prioridad:
+          $ref: '#/components/schemas/Priority'
+        posicion:
+          type: integer
+          minimum: 1
+        estimacion:
+          type: integer
+          minimum: 1
+          nullable: true
+        criteriosAceptacion:
+          type: string
+          nullable: true
+        preparado:
+          type: boolean
+          readOnly: true
+        faltantesPreparacion:
+          type: array
+          readOnly: true
+          items:
+            type: string
+        retirado:
+          type: boolean
+        sprintActualId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+    BacklogResponse:
+      type: object
+      additionalProperties: false
+      required: [projectId, productGoal, items]
+      properties:
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        productGoal:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BacklogItem'
+    BacklogCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [titulo, prioridad]
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+        descripcion:
+          type: string
+          nullable: true
+        prioridad:
+          $ref: '#/components/schemas/Priority'
+    BacklogPatchRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+        descripcion:
+          type: string
+          nullable: true
+        prioridad:
+          $ref: '#/components/schemas/Priority'
+        estimacion:
+          type: integer
+          minimum: 1
+          nullable: true
+        criteriosAceptacion:
+          type: string
+          nullable: true
+    BacklogOrderItem:
+      type: object
+      additionalProperties: false
+      required: [elementoBacklogId, posicion]
+      properties:
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        posicion:
+          type: integer
+          minimum: 1
+    BacklogOrderRequest:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/BacklogOrderItem'
+    BacklogRemovalResult:
+      type: object
+      additionalProperties: false
+      required: [elementoBacklogId, resultado]
+      properties:
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        resultado:
+          type: string
+          enum: [ELIMINADO, RETIRADO]
+    BacklogSplitPart:
+      type: object
+      additionalProperties: false
+      required: [titulo, prioridad]
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+        descripcion:
+          type: string
+          nullable: true
+        prioridad:
+          $ref: '#/components/schemas/Priority'
+        estimacion:
+          type: integer
+          minimum: 1
+          nullable: true
+        criteriosAceptacion:
+          type: string
+          nullable: true
+    BacklogSplitRequest:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 2
+          items:
+            $ref: '#/components/schemas/BacklogSplitPart'
+    BacklogSplitCreatedItem:
+      type: object
+      additionalProperties: false
+      required: [elementoBacklogId, titulo, posicion, prioridad]
+      properties:
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        titulo:
+          type: string
+        posicion:
+          type: integer
+          minimum: 1
+        prioridad:
+          $ref: '#/components/schemas/Priority'
+    BacklogSplitResult:
+      type: object
+      additionalProperties: false
+      required: [originalItemId, originalRetirado, createdItems]
+      properties:
+        originalItemId:
+          type: integer
+          format: int64
+          minimum: 1
+        originalRetirado:
+          type: boolean
+        createdItems:
+          type: array
+          minItems: 2
+          items:
+            $ref: '#/components/schemas/BacklogSplitCreatedItem'
+
+    SprintSelectedItem:
+      type: object
+      additionalProperties: false
+      required: [elementoBacklogId, titulo, estimacion]
+      properties:
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        titulo:
+          type: string
+        estimacion:
+          type: integer
+          minimum: 1
+    SprintSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - sprintId
+        - projectId
+        - sprintGoal
+        - fechaInicio
+        - fechaFin
+        - estado
+        - dodSnapshot
+        - selectedItems
+        - estimacionTotal
+        - cantidadElementos
+        - faltantesActivacion
+      properties:
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        sprintGoal:
+          type: string
+          nullable: true
+        fechaInicio:
+          type: string
+          format: date
+          nullable: true
+        fechaFin:
+          type: string
+          format: date
+          nullable: true
+          description: La duración total del Sprint no puede superar 28 días.
+        estado:
+          $ref: '#/components/schemas/SprintState'
+        dodSnapshot:
+          type: string
+          nullable: true
+        fechaActivacion:
+          type: string
+          format: date-time
+          nullable: true
+        fechaInicioCierre:
+          type: string
+          format: date-time
+          nullable: true
+        fechaFinalizacion:
+          type: string
+          format: date-time
+          nullable: true
+        selectedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/SprintSelectedItem'
+        estimacionTotal:
+          type: integer
+          minimum: 0
+        cantidadElementos:
+          type: integer
+          minimum: 0
+        faltantesActivacion:
+          type: array
+          items:
+            type: string
+    SprintDraftRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        sprintGoal:
+          type: string
+          nullable: true
+        fechaInicio:
+          type: string
+          format: date
+          nullable: true
+        fechaFin:
+          type: string
+          format: date
+          nullable: true
+    SprintDraftUpdateRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        sprintGoal:
+          type: string
+          nullable: true
+        fechaInicio:
+          type: string
+          format: date
+          nullable: true
+        fechaFin:
+          type: string
+          format: date
+          nullable: true
+        selectedItemIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+    ChecklistItemInput:
+      type: object
+      additionalProperties: false
+      required: [descripcion, posicion, completado]
+      properties:
+        checklistItemId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        descripcion:
+          type: string
+          minLength: 1
+        posicion:
+          type: integer
+          minimum: 1
+        completado:
+          type: boolean
+    ChecklistItem:
+      type: object
+      additionalProperties: false
+      required: [checklistItemId, descripcion, posicion, completado]
+      properties:
+        checklistItemId:
+          type: integer
+          format: int64
+          minimum: 1
+        descripcion:
+          type: string
+        posicion:
+          type: integer
+          minimum: 1
+        completado:
+          type: boolean
+    SprintComment:
+      type: object
+      additionalProperties: false
+      required: [comentarioId, autor, contenido, fechaPublicacion]
+      properties:
+        comentarioId:
+          type: integer
+          format: int64
+          minimum: 1
+        autor:
+          $ref: '#/components/schemas/MemberSummary'
+        contenido:
+          type: string
+        fechaPublicacion:
+          type: string
+          format: date-time
+    Impediment:
+      type: object
+      additionalProperties: false
+      required:
+        - impedimentoId
+        - elementoSprintId
+        - descripcion
+        - estado
+      properties:
+        impedimentoId:
+          type: integer
+          format: int64
+          minimum: 1
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        elementoSprintId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        descripcion:
+          type: string
+        estado:
+          $ref: '#/components/schemas/ImpedimentState'
+        reportadoPor:
+          $ref: '#/components/schemas/MemberSummary'
+        fechaCreacion:
+          type: string
+          format: date-time
+        resueltoPor:
+          allOf:
+            - $ref: '#/components/schemas/MemberSummary'
+          nullable: true
+        fechaResolucion:
+          type: string
+          format: date-time
+          nullable: true
+    SprintBoardCard:
+      type: object
+      required:
+        - elementoSprintId
+        - elementoBacklogId
+        - titulo
+        - prioridad
+        - estimacion
+        - responsable
+        - fechaInicio
+        - fechaLimite
+        - dodConfirmado
+      properties:
+        elementoSprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        titulo:
+          type: string
+        prioridad:
+          $ref: '#/components/schemas/Priority'
+        estimacion:
+          type: integer
+          minimum: 1
+        estado:
+          $ref: '#/components/schemas/SprintItemState'
+        responsable:
+          allOf:
+            - $ref: '#/components/schemas/MemberSummary'
+          nullable: true
+        fechaInicio:
+          type: string
+          format: date
+          nullable: true
+        fechaLimite:
+          type: string
+          format: date
+          nullable: true
+        dodConfirmado:
+          type: boolean
+        dodConfirmadoPor:
+          allOf:
+            - $ref: '#/components/schemas/MemberSummary'
+          nullable: true
+        dodConfirmadoEn:
+          type: string
+          format: date-time
+          nullable: true
+    BoardColumn:
+      type: object
+      additionalProperties: false
+      required: [estado, items]
+      properties:
+        estado:
+          $ref: '#/components/schemas/SprintItemState'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SprintBoardCard'
+    BoardCounts:
+      type: object
+      additionalProperties: false
+      required: [pendiente, enProgreso, terminado]
+      properties:
+        pendiente:
+          type: integer
+          minimum: 0
+        enProgreso:
+          type: integer
+          minimum: 0
+        terminado:
+          type: integer
+          minimum: 0
+    SprintBoard:
+      type: object
+      additionalProperties: false
+      required:
+        - sprintId
+        - sprintGoal
+        - estado
+        - readOnly
+        - progressPercentage
+        - counts
+        - columns
+        - impedimentosAbiertos
+      properties:
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        sprintGoal:
+          type: string
+          nullable: true
+        estado:
+          $ref: '#/components/schemas/SprintState'
+        readOnly:
+          type: boolean
+        progressPercentage:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        counts:
+          $ref: '#/components/schemas/BoardCounts'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/BoardColumn'
+        impedimentosAbiertos:
+          type: array
+          items:
+            $ref: '#/components/schemas/Impediment'
+    SprintBoardItem:
+      allOf:
+        - $ref: '#/components/schemas/SprintBoardCard'
+        - type: object
+          required:
+            - descripcion
+            - criteriosAceptacion
+            - definitionOfDone
+            - checklist
+            - comments
+            - impediments
+          properties:
+            descripcion:
+              type: string
+              nullable: true
+            criteriosAceptacion:
+              type: string
+              nullable: true
+            definitionOfDone:
+              type: string
+              nullable: true
+            checklist:
+              type: array
+              items:
+                $ref: '#/components/schemas/ChecklistItem'
+            comments:
+              type: array
+              items:
+                $ref: '#/components/schemas/SprintComment'
+            impediments:
+              type: array
+              items:
+                $ref: '#/components/schemas/Impediment'
+    SprintItemPatchRequest:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        responsableMiembroId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        estado:
+          $ref: '#/components/schemas/SprintItemState'
+        fechaInicio:
+          type: string
+          format: date
+          nullable: true
+        fechaLimite:
+          type: string
+          format: date
+          nullable: true
+        confirmarDod:
+          type: boolean
+        checklist:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChecklistItemInput'
+    CommentCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [contenido]
+      properties:
+        contenido:
+          type: string
+          minLength: 1
+    ImpedimentCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [descripcion]
+      properties:
+        elementoSprintId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        descripcion:
+          type: string
+          minLength: 1
+    ImpedimentResolveRequest:
+      type: object
+      additionalProperties: false
+      required: [estado]
+      properties:
+        estado:
+          type: string
+          enum: [RESUELTO]
+    SprintClosingResult:
+      type: object
+      additionalProperties: false
+      required:
+        - sprintId
+        - estado
+        - fechaInicioCierre
+        - boardReadOnly
+        - reviewDisponible
+        - retrospectiveDisponible
+      properties:
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          type: string
+          enum: [EN_CIERRE]
+        fechaInicioCierre:
+          type: string
+          format: date-time
+        boardReadOnly:
+          type: boolean
+        reviewDisponible:
+          type: boolean
+        retrospectiveDisponible:
+          type: boolean
+    TeamConfigurationSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - hasProductOwner
+        - hasScrumMaster
+        - developerCount
+        - hasDefinitionOfDone
+        - completeForActivation
+      properties:
+        hasProductOwner:
+          type: boolean
+        hasScrumMaster:
+          type: boolean
+        developerCount:
+          type: integer
+          minimum: 0
+        hasDefinitionOfDone:
+          type: boolean
+        completeForActivation:
+          type: boolean
+    CurrentSprintSummary:
+      type: object
+      additionalProperties: false
+      required: [sprintId, sprintGoal, fechaInicio, fechaFin, estado]
+      properties:
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        sprintGoal:
+          type: string
+          nullable: true
+        fechaInicio:
+          type: string
+          format: date
+          nullable: true
+        fechaFin:
+          type: string
+          format: date
+          nullable: true
+        estado:
+          $ref: '#/components/schemas/SprintState'
+    ProgressSummary:
+      type: object
+      additionalProperties: false
+      required: [percentage, counts]
+      properties:
+        percentage:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        counts:
+          $ref: '#/components/schemas/BoardCounts'
+    DailyTodaySummary:
+      type: object
+      additionalProperties: false
+      required: [dailyDisponible, dailyId, estado]
+      properties:
+        dailyDisponible:
+          type: boolean
+        dailyId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        estado:
+          allOf:
+            - $ref: '#/components/schemas/DailyState'
+          nullable: true
+    ClosingStatus:
+      type: object
+      additionalProperties: false
+      required: [reviewEstado, retrospectiveEstado]
+      properties:
+        reviewEstado:
+          allOf:
+            - $ref: '#/components/schemas/EventRecordState'
+          nullable: true
+        retrospectiveEstado:
+          allOf:
+            - $ref: '#/components/schemas/EventRecordState'
+          nullable: true
+    Recommendation:
+      type: object
+      additionalProperties: false
+      required: [codigo, mensaje, destino]
+      properties:
+        codigo:
+          type: string
+        mensaje:
+          type: string
+        destino:
+          type: string
+          enum: [INVITACIONES, PROYECTOS, EQUIPO, BACKLOG, SPRINT, DAILY, CIERRE]
+    ProjectDashboardSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - projectId
+        - productGoal
+        - teamConfiguration
+        - currentSprint
+        - progress
+        - dailyToday
+        - openImpediments
+        - closingStatus
+        - primaryRecommendation
+        - secondaryAlerts
+      properties:
+        projectId:
+          type: integer
+          format: int64
+          minimum: 1
+        productGoal:
+          type: string
+          nullable: true
+        teamConfiguration:
+          $ref: '#/components/schemas/TeamConfigurationSummary'
+        currentSprint:
+          allOf:
+            - $ref: '#/components/schemas/CurrentSprintSummary'
+          nullable: true
+        progress:
+          allOf:
+            - $ref: '#/components/schemas/ProgressSummary'
+          nullable: true
+        dailyToday:
+          allOf:
+            - $ref: '#/components/schemas/DailyTodaySummary'
+          nullable: true
+        openImpediments:
+          type: integer
+          minimum: 0
+        closingStatus:
+          $ref: '#/components/schemas/ClosingStatus'
+        primaryRecommendation:
+          allOf:
+            - $ref: '#/components/schemas/Recommendation'
+          nullable: true
+        secondaryAlerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+
+    DailyParticipant:
+      type: object
+      additionalProperties: false
+      required: [miembroProyectoId, userId, nombre, horaIngreso, asistio, ausente]
+      properties:
+        miembroProyectoId:
+          type: integer
+          format: int64
+          minimum: 1
+        userId:
+          type: integer
+          format: int64
+          minimum: 1
+        nombre:
+          type: string
+        horaIngreso:
+          type: string
+          format: date-time
+          nullable: true
+        asistio:
+          type: boolean
+        ausente:
+          type: boolean
+    DailyMessage:
+      type: object
+      additionalProperties: false
+      required:
+        - mensajeDailyId
+        - autor
+        - elementoSprintId
+        - tipo
+        - contenido
+        - fechaPublicacion
+      properties:
+        mensajeDailyId:
+          type: integer
+          format: int64
+          minimum: 1
+        autor:
+          $ref: '#/components/schemas/MemberSummary'
+        elementoSprintId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        tipo:
+          $ref: '#/components/schemas/DailyMessageType'
+        contenido:
+          type: string
+        fechaPublicacion:
+          type: string
+          format: date-time
+    DailyDetail:
+      type: object
+      additionalProperties: false
+      required:
+        - dailyDisponible
+        - dailyId
+        - sprintId
+        - fecha
+        - estado
+        - iniciadaPor
+        - horaInicio
+        - finalizadaPor
+        - horaFin
+        - participants
+        - messages
+      properties:
+        dailyDisponible:
+          type: boolean
+        dailyId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        fecha:
+          type: string
+          format: date
+        estado:
+          allOf:
+            - $ref: '#/components/schemas/DailyState'
+          nullable: true
+          description: Es null cuando dailyDisponible es false.
+        iniciadaPor:
+          allOf:
+            - $ref: '#/components/schemas/MemberSummary'
+          nullable: true
+        horaInicio:
+          type: string
+          format: date-time
+          nullable: true
+        finalizadaPor:
+          allOf:
+            - $ref: '#/components/schemas/MemberSummary'
+          nullable: true
+        horaFin:
+          type: string
+          format: date-time
+          nullable: true
+        expectedCount:
+          type: integer
+          minimum: 0
+        attendeeCount:
+          type: integer
+          minimum: 0
+        absentCount:
+          type: integer
+          minimum: 0
+          nullable: true
+        participants:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/DailyParticipant'
+        messages:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/DailyMessage'
+    DailyJoinResult:
+      type: object
+      additionalProperties: false
+      required: [dailyId, participant]
+      properties:
+        dailyId:
+          type: integer
+          format: int64
+          minimum: 1
+        participant:
+          $ref: '#/components/schemas/DailyParticipant'
+    DailyMessageCreateRequest:
+      type: object
+      additionalProperties: false
+      required: [tipo, contenido]
+      properties:
+        tipo:
+          $ref: '#/components/schemas/DailyMessageType'
+        contenido:
+          type: string
+          minLength: 1
+        elementoSprintId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+    DailyMessageCreateResult:
+      type: object
+      additionalProperties: false
+      required: [message, createdImpediment]
+      properties:
+        message:
+          $ref: '#/components/schemas/DailyMessage'
+        createdImpediment:
+          allOf:
+            - $ref: '#/components/schemas/Impediment'
+          nullable: true
+    DailyFinishResult:
+      type: object
+      additionalProperties: false
+      required:
+        - dailyId
+        - estado
+        - horaFin
+        - finalizadaPor
+        - attendeeCount
+        - absentCount
+        - absentMembers
+      properties:
+        dailyId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          type: string
+          enum: [FINALIZADA]
+        horaFin:
+          type: string
+          format: date-time
+        finalizadaPor:
+          $ref: '#/components/schemas/MemberSummary'
+        attendeeCount:
+          type: integer
+          minimum: 0
+        absentCount:
+          type: integer
+          minimum: 0
+        absentMembers:
+          type: array
+          items:
+            $ref: '#/components/schemas/MemberSummary'
+
+    ReviewIncrementItem:
+      type: object
+      additionalProperties: false
+      required: [elementoSprintId, elementoBacklogId, titulo, dodConfirmado]
+      properties:
+        elementoSprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        titulo:
+          type: string
+        dodConfirmado:
+          type: boolean
+    ReviewIncompleteItem:
+      type: object
+      additionalProperties: false
+      required: [elementoSprintId, elementoBacklogId, titulo, estado]
+      properties:
+        elementoSprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+        titulo:
+          type: string
+        estado:
+          $ref: '#/components/schemas/SprintItemState'
+    SprintReview:
+      type: object
+      additionalProperties: false
+      required:
+        - sprintReviewId
+        - sprintId
+        - estado
+        - participantes
+        - stakeholdersExternos
+        - resultados
+        - retroalimentacion
+        - decisiones
+        - conclusion
+        - completadaPor
+        - fechaCompletada
+      properties:
+        sprintReviewId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          $ref: '#/components/schemas/EventRecordState'
+        sprintGoal:
+          type: string
+          nullable: true
+        incrementItems:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/ReviewIncrementItem'
+        incompleteItems:
+          type: array
+          readOnly: true
+          items:
+            $ref: '#/components/schemas/ReviewIncompleteItem'
+        participantes:
+          type: string
+          nullable: true
+        stakeholdersExternos:
+          type: string
+          nullable: true
+        resultados:
+          type: string
+          nullable: true
+        retroalimentacion:
+          type: string
+          nullable: true
+        decisiones:
+          type: string
+          nullable: true
+        conclusion:
+          type: string
+          nullable: true
+        completadaPor:
+          allOf:
+            - $ref: '#/components/schemas/MemberSummary'
+          nullable: true
+        fechaCompletada:
+          type: string
+          format: date-time
+          nullable: true
+    SprintReviewDraftRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - participantes
+        - stakeholdersExternos
+        - resultados
+        - retroalimentacion
+        - decisiones
+        - conclusion
+      properties:
+        participantes:
+          type: string
+          nullable: true
+        stakeholdersExternos:
+          type: string
+          nullable: true
+        resultados:
+          type: string
+          nullable: true
+        retroalimentacion:
+          type: string
+          nullable: true
+        decisiones:
+          type: string
+          nullable: true
+        conclusion:
+          type: string
+          nullable: true
+    ReviewCompleteResult:
+      type: object
+      additionalProperties: false
+      required:
+        - sprintReviewId
+        - sprintId
+        - estado
+        - completadaPor
+        - fechaCompletada
+        - retrospectiveDisponible
+      properties:
+        sprintReviewId:
+          type: integer
+          format: int64
+          minimum: 1
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          type: string
+          enum: [COMPLETADA]
+        completadaPor:
+          $ref: '#/components/schemas/MemberSummary'
+        fechaCompletada:
+          type: string
+          format: date-time
+        retrospectiveDisponible:
+          type: boolean
+    ImprovementAction:
+      type: object
+      additionalProperties: false
+      required: [accionMejoraId, descripcion, posicion, elementoBacklogId]
+      properties:
+        accionMejoraId:
+          type: integer
+          format: int64
+          minimum: 1
+        descripcion:
+          type: string
+        posicion:
+          type: integer
+          minimum: 1
+        elementoBacklogId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+    ImprovementActionInput:
+      type: object
+      additionalProperties: false
+      required: [accionMejoraId, descripcion, posicion]
+      properties:
+        accionMejoraId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        descripcion:
+          type: string
+          minLength: 1
+        posicion:
+          type: integer
+          minimum: 1
+    SprintRetrospective:
+      type: object
+      additionalProperties: false
+      required:
+        - sprintRetrospectiveId
+        - sprintId
+        - estado
+        - participantes
+        - aspectosPositivos
+        - problemas
+        - propuestas
+        - conclusion
+        - accionesMejora
+        - completadaPor
+        - fechaCompletada
+      properties:
+        sprintRetrospectiveId:
+          type: integer
+          format: int64
+          minimum: 1
+          nullable: true
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          $ref: '#/components/schemas/EventRecordState'
+        participantes:
+          type: string
+          nullable: true
+        aspectosPositivos:
+          type: string
+          nullable: true
+        problemas:
+          type: string
+          nullable: true
+        propuestas:
+          type: string
+          nullable: true
+        conclusion:
+          type: string
+          nullable: true
+        accionesMejora:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImprovementAction'
+        completadaPor:
+          allOf:
+            - $ref: '#/components/schemas/MemberSummary'
+          nullable: true
+        fechaCompletada:
+          type: string
+          format: date-time
+          nullable: true
+    SprintRetrospectiveDraftRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - participantes
+        - aspectosPositivos
+        - problemas
+        - propuestas
+        - conclusion
+        - accionesMejora
+      properties:
+        participantes:
+          type: string
+          nullable: true
+        aspectosPositivos:
+          type: string
+          nullable: true
+        problemas:
+          type: string
+          nullable: true
+        propuestas:
+          type: string
+          nullable: true
+        conclusion:
+          type: string
+          nullable: true
+        accionesMejora:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImprovementActionInput'
+    ImprovementActionConvertRequest:
+      type: object
+      additionalProperties: false
+      required: [titulo, prioridad]
+      properties:
+        titulo:
+          type: string
+          minLength: 1
+        descripcion:
+          type: string
+          nullable: true
+        prioridad:
+          $ref: '#/components/schemas/Priority'
+    ImprovementActionConversionResult:
+      type: object
+      additionalProperties: false
+      required: [accionMejoraId, elementoBacklog]
+      properties:
+        accionMejoraId:
+          type: integer
+          format: int64
+          minimum: 1
+        elementoBacklog:
+          $ref: '#/components/schemas/BacklogItem'
+    CompletedRetrospectiveSummary:
+      type: object
+      additionalProperties: false
+      required: [sprintRetrospectiveId, sprintId, estado, completadaPor, fechaCompletada]
+      properties:
+        sprintRetrospectiveId:
+          type: integer
+          format: int64
+          minimum: 1
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          type: string
+          enum: [COMPLETADA]
+        completadaPor:
+          $ref: '#/components/schemas/MemberSummary'
+        fechaCompletada:
+          type: string
+          format: date-time
+    FinalizedSprintSummary:
+      type: object
+      additionalProperties: false
+      required: [sprintId, estado, fechaFinalizacion]
+      properties:
+        sprintId:
+          type: integer
+          format: int64
+          minimum: 1
+        estado:
+          type: string
+          enum: [FINALIZADO]
+        fechaFinalizacion:
+          type: string
+          format: date-time
+    RetrospectiveCompleteResult:
+      type: object
+      additionalProperties: false
+      required: [retrospective, sprint, returnedBacklogItemIds]
+      properties:
+        retrospective:
+          $ref: '#/components/schemas/CompletedRetrospectiveSummary'
+        sprint:
+          $ref: '#/components/schemas/FinalizedSprintSummary'
+        returnedBacklogItemIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: integer
+            format: int64
+            minimum: 1
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [mensaje]
+      properties:
+        mensaje:
+          type: string
+          description: Mensaje general legible para el usuario.
+    ValidationErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [mensaje, errores]
+      properties:
+        mensaje:
+          type: string
+          example: Datos inválidos
+        errores:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            titulo: El título es obligatorio
+            prioridad: La prioridad indicada no es válida

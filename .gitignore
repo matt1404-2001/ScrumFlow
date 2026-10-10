@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Compilación y cobertura
+dist/
+build/
+coverage/
+bin/
+obj/
+
+# Variables locales y secretos
+.env
+.env.*
+!.env.example
+
+# Registros y archivos temporales
+*.log
+*.tmp
+*.temp
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
