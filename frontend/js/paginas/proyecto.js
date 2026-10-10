@@ -119,7 +119,17 @@ async function renderizarSeccion() {
   if (clave === "product-backlog") {
     contenido.innerHTML = `<div class="backlog-cargando" role="status"><span></span>Cargando Product Backlog…</div>`;
     document.title = `${seccion.titulo} · ${proyecto.nombre} | ScrumFlow`;
-    await inicializarBacklog(contenido, projectId, { puedeAdministrar: proyecto.esAdministrador, esProductOwner: proyecto.esProductOwner });
+    try {
+      await inicializarBacklog(contenido, projectId, { puedeAdministrar: proyecto.esAdministrador, esProductOwner: proyecto.esProductOwner });
+    } catch (error) {
+      contenido.innerHTML = `
+        <section class="resumen-error" role="alert">
+          <h1>No fue posible cargar el Product Backlog</h1>
+          <p>${escaparHtml(error.message || "Comprueba que la API y la base de datos estén disponibles.")}</p>
+          <button class="boton boton--principal" type="button" data-reintentar-backlog>Reintentar</button>
+        </section>`;
+      contenido.querySelector("[data-reintentar-backlog]")?.addEventListener("click", renderizarSeccion, { once: true });
+    }
     return;
   }
 

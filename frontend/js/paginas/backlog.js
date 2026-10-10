@@ -2,11 +2,11 @@ import {
   actualizarElementoBacklog,
   actualizarProductGoal,
   crearElementoBacklog,
-  dividirElementoBacklog,
   obtenerProductBacklog,
   reordenarProductBacklog,
   retirarElementoBacklog
-} from "../api/backlog.js";
+} from "../api/backlog-producto.js";
+import { dividirElementoBacklog } from "../api/backlog.js";
 import { escaparAtributo, escaparHtml } from "../utilidades/html.js";
 
 const etiquetasPrioridad = { ALTA: "Alta", MEDIA: "Media", BAJA: "Baja" };

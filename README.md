@@ -35,4 +35,8 @@ ScrumFlow es una aplicación web académica para apoyar la gestión de un proyec
 3. Importa el archivo `openapi.yaml` o copia su contenido en el editor.
 4. Swagger mostrará automáticamente los endpoints, parámetros, requests, responses y schemas definidos en la especificación.
 
+## Datos para desarrollo local
+
+Mientras la gestión de proyectos del frontend continúe usando datos simulados, sus enlaces utilizan los proyectos `101`, `204` y `318`. Después de crear el esquema, ejecuta una vez [`base-datos/datos-desarrollo.sql`](base-datos/datos-desarrollo.sql) sobre la base `ScrumFlow` para crear esos proyectos y sus membresías sin reemplazar registros existentes.
+
 Las carpetas `frontend/` y `backend/` quedan preparadas para incorporar la implementación de la aplicación.

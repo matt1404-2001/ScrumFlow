@@ -176,7 +176,7 @@ export async function dividirElementoBacklog(projectId, itemId, partes) {
   return { originalItemId: original.elementoBacklogId, originalRetirado: true, createdItems: structuredClone(nuevos) };
 }
 
-// Equivale a DELETE /api/proyectos/{projectId}/pila-producto/{itemId}.
+// Equivale a DELETE /api/proyectos/{projectId}/backlog/{itemId}.
 export async function retirarElementoBacklog(projectId, itemId) {
   if (!proyectosAdministrados.has(String(projectId))) throw new Error("No tienes permiso para realizar esta acción.");
   const backlog = obtenerDatos(projectId);
