@@ -24,3 +24,11 @@ obj/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Archivos temporales de Visual Studio
+.vs/
+**/.vs/
+
+# Archivos de compilación de .NET
+**/bin/
+**/obj/

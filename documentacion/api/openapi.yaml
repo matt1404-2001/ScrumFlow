@@ -759,7 +759,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
-  /api/proyectos/{projectId}/pila-producto:
+  /api/proyectos/{projectId}/backlog:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
     get:
@@ -846,7 +846,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
-  /api/proyectos/{projectId}/pila-producto/{itemId}:
+  /api/proyectos/{projectId}/backlog/{itemId}:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
       - $ref: '#/components/parameters/BacklogItemId'
@@ -902,7 +902,7 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalError'
-  /api/proyectos/{projectId}/pila-producto/orden:
+  /api/proyectos/{projectId}/backlog/orden:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
     put:
@@ -938,7 +938,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
-  /api/proyectos/{projectId}/pila-producto/{itemId}/dividir:
+  /api/proyectos/{projectId}/backlog/{itemId}/dividir:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
       - $ref: '#/components/parameters/BacklogItemId'
@@ -1231,7 +1231,7 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '500':
           $ref: '#/components/responses/InternalError'
-  /api/proyectos/{projectId}/sprints/{sprintId}/retrospectiva/acciones/{actionId}/elemento-pila-producto:
+  /api/proyectos/{projectId}/sprints/{sprintId}/retrospectiva/acciones/{actionId}/elemento-backlog:
     parameters:
       - $ref: '#/components/parameters/ProjectId'
       - $ref: '#/components/parameters/SprintId'
