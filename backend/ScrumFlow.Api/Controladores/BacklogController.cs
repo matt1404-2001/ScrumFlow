@@ -52,6 +52,23 @@ public sealed class BacklogController(IProductBacklogServicio servicio) : Contro
         return Ok(await servicio.ReordenarAsync(projectId, orden, ct));
     }
 
+    [HttpPost("backlog/{itemId:long}/dividir")]
+    public async Task<ActionResult<DivisionResponseDto>> Dividir(long projectId, long itemId, DivisionRequestDto dto, CancellationToken ct)
+    {
+        var partes = dto.Items?.Select(x => new ParteDivisionModelo(
+            x.Titulo ?? string.Empty,
+            x.Descripcion,
+            ParsearPrioridad(x.Prioridad),
+            x.Estimacion,
+            x.CriteriosAceptacion)).ToList() ?? [];
+        var resultado = await servicio.DividirAsync(projectId, itemId, partes, ct);
+        var respuesta = new DivisionResponseDto(
+            resultado.OriginalItemId,
+            resultado.OriginalRetirado,
+            resultado.CreatedItems.Select(x => new ElementoCreadoDivisionDto(x.ElementoBacklogId, x.Titulo, x.Posicion, x.Prioridad)).ToList());
+        return StatusCode(StatusCodes.Status201Created, respuesta);
+    }
+
     private static Prioridad ParsearPrioridad(string? valor) => valor switch
     {
         "BAJA" => Prioridad.Baja,

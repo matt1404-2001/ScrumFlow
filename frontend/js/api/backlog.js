@@ -151,31 +151,6 @@ export async function reordenarProductBacklog(projectId, orden) {
   return backlog.items.map(({ elementoBacklogId, posicion }) => ({ elementoBacklogId, posicion }));
 }
 
-export async function dividirElementoBacklog(projectId, itemId, partes) {
-  const backlog = obtenerDatos(projectId);
-  const indice = backlog.items.findIndex((item) => item.elementoBacklogId === Number(itemId));
-  const original = backlog.items[indice];
-  const nuevos = partes.map((parte) => {
-    const item = {
-      elementoBacklogId: siguienteId++,
-      titulo: parte.titulo.trim(),
-      descripcion: null,
-      prioridad: original.prioridad,
-      posicion: 0,
-      estimacion: null,
-      criteriosAceptacion: null,
-      preparado: false,
-      faltantesPreparacion: ["descripcion", "estimacion"],
-      retirado: false,
-      sprintActualId: null
-    };
-    return item;
-  });
-  backlog.items.splice(indice, 1, ...nuevos);
-  normalizarPosiciones(backlog.items);
-  return { originalItemId: original.elementoBacklogId, originalRetirado: true, createdItems: structuredClone(nuevos) };
-}
-
 // Equivale a DELETE /api/proyectos/{projectId}/backlog/{itemId}.
 export async function retirarElementoBacklog(projectId, itemId) {
   if (!proyectosAdministrados.has(String(projectId))) throw new Error("No tienes permiso para realizar esta acción.");

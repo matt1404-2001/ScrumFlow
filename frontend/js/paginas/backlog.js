@@ -2,11 +2,11 @@ import {
   actualizarElementoBacklog,
   actualizarProductGoal,
   crearElementoBacklog,
+  dividirElementoBacklog,
   obtenerProductBacklog,
   reordenarProductBacklog,
   retirarElementoBacklog
 } from "../api/backlog-producto.js";
-import { dividirElementoBacklog } from "../api/backlog.js";
 import { escaparAtributo, escaparHtml } from "../utilidades/html.js";
 
 const etiquetasPrioridad = { ALTA: "Alta", MEDIA: "Media", BAJA: "Baja" };
@@ -282,11 +282,15 @@ export async function inicializarBacklog(contenedor, projectId, permisos = {}) {
         entradas.find((entrada) => !entrada.value.trim())?.focus();
         return;
       }
-      await dividirElementoBacklog(projectId, elementoActivo.elementoBacklogId, titulos.map((titulo) => ({ titulo, prioridad: elementoActivo.prioridad })));
-      backlog = await obtenerProductBacklog(projectId);
-      cerrarPanel();
-      actualizarLista();
-      anunciar("Elemento dividido correctamente");
+      try {
+        await dividirElementoBacklog(projectId, elementoActivo.elementoBacklogId, titulos.map((titulo) => ({ titulo, prioridad: elementoActivo.prioridad })));
+        backlog = await obtenerProductBacklog(projectId);
+        cerrarPanel();
+        actualizarLista();
+        anunciar("Elemento dividido correctamente");
+      } catch (errorPeticion) {
+        contenedor.querySelector("[data-estado-panel]").textContent = errorPeticion.message;
+      }
     }
   }, { signal: sesion.signal });
 
@@ -331,16 +335,22 @@ export async function inicializarBacklog(contenedor, projectId, permisos = {}) {
       return;
     }
 
-    await actualizarElementoBacklog(projectId, elementoActivo.elementoBacklogId, {
-      titulo,
-      descripcion: datos.get("descripcion").trim() || null,
-      prioridad: datos.get("prioridad"),
-      estimacion: estimacionTexto ? Number(estimacionTexto) : null,
-      criteriosAceptacion: datos.get("criteriosAceptacion").trim() || null
-    });
-    backlog = await obtenerProductBacklog(projectId);
-    cerrarPanel();
-    actualizarLista();
-    anunciar("Elemento refinado correctamente");
+    try {
+      const nuevaEstimacion = estimacionTexto ? Number(estimacionTexto) : null;
+      const cambios = {
+        titulo,
+        descripcion: datos.get("descripcion").trim() || null,
+        prioridad: datos.get("prioridad"),
+        criteriosAceptacion: datos.get("criteriosAceptacion").trim() || null
+      };
+      if (nuevaEstimacion !== elementoActivo.estimacion) cambios.estimacion = nuevaEstimacion;
+      await actualizarElementoBacklog(projectId, elementoActivo.elementoBacklogId, cambios);
+      backlog = await obtenerProductBacklog(projectId);
+      cerrarPanel();
+      actualizarLista();
+      anunciar("Elemento refinado correctamente");
+    } catch (errorPeticion) {
+      contenedor.querySelector("[data-estado-panel]").textContent = errorPeticion.message;
+    }
   }, { signal: sesion.signal });
 }
