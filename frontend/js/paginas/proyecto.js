@@ -1,4 +1,6 @@
 import { inicializarBacklog } from "./backlog.js";
+import { inicializarResumen } from "./resumen.js";
+import { inicializarSprint } from "./sprint.js";
 
 const proyectos = {
   "101": {
@@ -20,11 +22,7 @@ const proyectos = {
 
 const secciones = {
   resumen: {
-    titulo: "Resumen",
-    descripcion: "Vista general del proyecto y punto de partida para continuar el trabajo del equipo.",
-    estado: "Proyecto disponible",
-    mensaje: "El resumen de este proyecto estará disponible en el siguiente paso.",
-    detalle: "Aquí encontrarás el estado actual y la siguiente actividad recomendada, sin abandonar este espacio de trabajo."
+    titulo: "Resumen"
   },
   "product-backlog": {
     titulo: "Product Backlog",
@@ -84,11 +82,33 @@ async function renderizarSeccion() {
   });
 
   document.body.classList.remove("panel-backlog-abierto");
+  document.body.classList.remove("panel-sprint-abierto");
+  document.body.classList.toggle("pagina-resumen", clave === "resumen");
+  contenido.classList.toggle("resumen", clave === "resumen");
+  contenido.removeAttribute("aria-busy");
+
+  if (clave === "resumen") {
+    contenido.innerHTML = `
+      <div class="resumen-cargando" role="status">
+        <span class="resumen-cargando__indicador" aria-hidden="true"></span>
+        <p>Preparando el estado del proyecto...</p>
+      </div>
+    `;
+    await inicializarResumen(contenido, parametros.get("projectId") ?? "101");
+    return;
+  }
 
   if (clave === "product-backlog") {
     contenido.innerHTML = `<div class="backlog-cargando" role="status"><span></span>Cargando Product Backlog…</div>`;
     document.title = `${seccion.titulo} · ${proyecto.nombre} | ScrumFlow`;
     await inicializarBacklog(contenido, parametros.get("projectId") ?? "101");
+    return;
+  }
+
+  if (clave === "sprint") {
+    contenido.innerHTML = `<div class="sprint-cargando" role="status"><span></span>Cargando Sprint…</div>`;
+    document.title = `${seccion.titulo} · ${proyecto.nombre} | ScrumFlow`;
+    await inicializarSprint(contenido, parametros.get("projectId") ?? "101");
     return;
   }
 

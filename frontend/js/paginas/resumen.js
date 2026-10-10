@@ -1,9 +1,5 @@
 import { obtenerResumenProyecto } from "../api/resumen.js";
 
-const parametros = new URLSearchParams(window.location.search);
-const projectId = parametros.get("projectId") ?? "101";
-const contenedor = document.querySelector("[data-resumen]");
-
 const accionesPorDestino = {
   INVITACIONES: { etiqueta: "Ver invitaciones", seccion: "../proyectos/" },
   PROYECTOS: { etiqueta: "Ver proyectos", seccion: "../proyectos/" },
@@ -20,7 +16,7 @@ function escaparHtml(texto) {
   return elemento.innerHTML;
 }
 
-function crearUrlSeccion(seccion) {
+function crearUrlSeccion(seccion, projectId) {
   if (seccion.startsWith("../")) return seccion;
   return `../proyecto/?projectId=${encodeURIComponent(projectId)}#${seccion}`;
 }
@@ -76,7 +72,7 @@ function renderizarProgreso(resumen) {
   `;
 }
 
-function renderizarActividad(resumen) {
+function renderizarActividad(resumen, projectId) {
   const recomendacion = resumen.primaryRecommendation;
   if (!recomendacion) {
     return `
@@ -106,7 +102,7 @@ function renderizarActividad(resumen) {
           <p>${textoApoyo}</p>
         </div>
       </div>
-      <a class="boton boton--principal" href="${crearUrlSeccion(accion.seccion)}">
+      <a class="boton boton--principal" href="${crearUrlSeccion(accion.seccion, projectId)}">
         ${accion.etiqueta}
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4"></path></svg>
       </a>
@@ -170,13 +166,16 @@ function renderizarTrabajo(resumen) {
   `;
 }
 
-function renderizarResumen(datos) {
+function renderizarResumen(contenedor, datos, projectId) {
   const { proyecto, resumen } = datos;
-  document.querySelector("[data-nombre-proyecto]").textContent = proyecto.nombre;
-  document.querySelector("[data-rol-usuario]").textContent = proyecto.rol;
-  document.querySelector("[data-enlace-resumen]").href = `resumen.html?projectId=${encodeURIComponent(resumen.projectId)}`;
+  const nombreProyecto = document.querySelector("[data-nombre-proyecto]");
+  const rolUsuario = document.querySelector("[data-rol-usuario]");
+  const enlaceResumen = document.querySelector("[data-enlace-resumen]");
+  if (nombreProyecto) nombreProyecto.textContent = proyecto.nombre;
+  if (rolUsuario) rolUsuario.textContent = proyecto.rol;
+  if (enlaceResumen) enlaceResumen.href = `resumen.html?projectId=${encodeURIComponent(resumen.projectId)}`;
   document.querySelectorAll("[data-destino-seccion]").forEach((enlace) => {
-    enlace.href = crearUrlSeccion(enlace.dataset.destinoSeccion);
+    enlace.href = crearUrlSeccion(enlace.dataset.destinoSeccion, projectId);
   });
   document.title = `Resumen · ${proyecto.nombre} | ScrumFlow`;
 
@@ -191,7 +190,7 @@ function renderizarResumen(datos) {
     </header>
     <div class="resumen__principal">
       ${renderizarProgreso(resumen)}
-      ${renderizarActividad(resumen)}
+      ${renderizarActividad(resumen, projectId)}
     </div>
     ${renderizarSenales(resumen)}
     ${renderizarTrabajo(resumen)}
@@ -199,7 +198,7 @@ function renderizarResumen(datos) {
   contenedor.setAttribute("aria-busy", "false");
 }
 
-function renderizarError() {
+function renderizarError(contenedor, reintentar) {
   contenedor.innerHTML = `
     <section class="resumen-error" role="alert">
       <h1>No fue posible obtener el estado del proyecto</h1>
@@ -208,16 +207,20 @@ function renderizarError() {
     </section>
   `;
   contenedor.setAttribute("aria-busy", "false");
-  contenedor.querySelector("[data-reintentar]")?.addEventListener("click", cargarResumen);
+  contenedor.querySelector("[data-reintentar]")?.addEventListener("click", reintentar);
 }
 
-async function cargarResumen() {
+export async function inicializarResumen(contenedor, projectId) {
   contenedor.setAttribute("aria-busy", "true");
   try {
-    renderizarResumen(await obtenerResumenProyecto(projectId));
+    renderizarResumen(contenedor, await obtenerResumenProyecto(projectId), projectId);
   } catch {
-    renderizarError();
+    renderizarError(contenedor, () => inicializarResumen(contenedor, projectId));
   }
 }
 
-cargarResumen();
+const contenedorResumen = document.querySelector("[data-resumen]");
+if (contenedorResumen) {
+  const parametros = new URLSearchParams(window.location.search);
+  inicializarResumen(contenedorResumen, parametros.get("projectId") ?? "101");
+}

@@ -6,19 +6,10 @@ import {
   obtenerProductBacklog,
   reordenarProductBacklog
 } from "../api/backlog.js";
+import { escaparAtributo, escaparHtml } from "../utilidades/html.js";
 
 const etiquetasPrioridad = { ALTA: "Alta", MEDIA: "Media", BAJA: "Baja" };
 const sesiones = new WeakMap();
-
-function escaparHtml(texto) {
-  const elemento = document.createElement("div");
-  elemento.textContent = texto ?? "";
-  return elemento.innerHTML;
-}
-
-function escaparAtributo(texto) {
-  return escaparHtml(texto).replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-}
 
 function renderizarLista(items) {
   if (!items.length) {
