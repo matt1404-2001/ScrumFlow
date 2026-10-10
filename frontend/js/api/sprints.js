@@ -13,11 +13,11 @@ const sprintsSimulados = {
     sprintGoal: "Completar el acceso seguro y habilitar la creación de cuentas",
     fechaInicio: "2026-10-12",
     fechaFin: "2026-10-23",
-    estado: "EN_CIERRE",
+    estado: "ACTIVO",
     dodSnapshot: "El código fue revisado. Las pruebas pasan. Los criterios de aceptación se cumplen. La funcionalidad está integrada y documentada.",
     selectedItemIds: [41, 42, 43],
     fechaActivacion: "2026-10-12T08:30:00Z",
-    fechaInicioCierre: "2026-10-23T16:40:00Z",
+    fechaInicioCierre: null,
     fechaFinalizacion: null
   },
   "204": null,
@@ -88,7 +88,7 @@ const cierresSimulados = {
       sprintReviewId: 8098,
       sprintId: 6998,
       estado: "COMPLETADA",
-      participantes: "María López, Diego Soto y Laura Méndez",
+       participantes: "María López y Andrés Molina",
       stakeholdersExternos: "Responsable comercial",
       resultados: "El equipo presentó la vista unificada y el detalle de oportunidades con datos representativos.",
       retroalimentacion: "Priorizar filtros guardados y mejorar la lectura de oportunidades sin actividad reciente.",
@@ -101,13 +101,13 @@ const cierresSimulados = {
       sprintRetrospectiveId: 9098,
       sprintId: 6998,
       estado: "COMPLETADA",
-      participantes: "María López, Diego Soto y Laura Méndez",
+       participantes: "María López y Andrés Molina",
       aspectosPositivos: "Las validaciones tempranas con el área comercial redujeron retrabajo.",
       problemas: "La definición de los filtros llegó tarde y afectó el último elemento.",
       propuestas: "Acordar ejemplos de búsqueda antes de iniciar el desarrollo.",
       conclusion: "El equipo mantendrá una validación funcional a mitad del próximo Sprint.",
       accionesMejora: [
-        { accionMejoraId: 9201, descripcion: "Preparar ejemplos de búsqueda durante el refinamiento", posicion: 1, elementoBacklogId: 70 }
+         { accionMejoraId: 9201, descripcion: "Preparar ejemplos de búsqueda durante el refinamiento", posicion: 1, elementoBacklogId: null }
       ],
       completadaPor: { miembroProyectoId: 21, userId: 1, nombre: "María López" },
       fechaCompletada: "2026-10-03T17:05:00Z"
@@ -130,16 +130,16 @@ let siguienteImpedimentoId = 1500;
 const equiposSimulados = {
   "101": {
     members: [
-      { miembroProyectoId: 11, usuario: { userId: 1, nombre: "María López", correo: "maria@example.com" }, esAdministrador: true, esProductOwner: true, esScrumMaster: false, esDeveloper: false, activo: true },
-      { miembroProyectoId: 12, usuario: { userId: 2, nombre: "Juan Pérez", correo: "juan@example.com" }, esAdministrador: false, esProductOwner: false, esScrumMaster: true, esDeveloper: true, activo: true },
-      { miembroProyectoId: 13, usuario: { userId: 3, nombre: "Sofía Ramírez", correo: "sofia@example.com" }, esAdministrador: false, esProductOwner: false, esScrumMaster: false, esDeveloper: true, activo: true }
+      { miembroProyectoId: 11, usuario: { userId: 1, nombre: "María López", correo: "maria.lopez@correo.com" }, esAdministrador: true, esProductOwner: true, esScrumMaster: false, esDeveloper: true, activo: true },
+      { miembroProyectoId: 12, usuario: { userId: 2, nombre: "Juan Pérez", correo: "juan.perez@correo.com" }, esAdministrador: false, esProductOwner: false, esScrumMaster: true, esDeveloper: true, activo: true },
+      { miembroProyectoId: 13, usuario: { userId: 3, nombre: "Sofía Ramírez", correo: "sofia.ramirez@correo.com" }, esAdministrador: false, esProductOwner: false, esScrumMaster: false, esDeveloper: true, activo: true }
     ],
     definitionOfDone: "El código fue revisado. Las pruebas pasan. Los criterios de aceptación se cumplen. La funcionalidad está integrada y documentada.",
     pendingInvitations: []
   },
   "204": {
     members: [
-      { miembroProyectoId: 21, usuario: { userId: 1, nombre: "María López", correo: "maria@example.com" }, esAdministrador: false, esProductOwner: true, esScrumMaster: false, esDeveloper: true, activo: true }
+      { miembroProyectoId: 21, usuario: { userId: 1, nombre: "María López", correo: "maria.lopez@correo.com" }, esAdministrador: false, esProductOwner: true, esScrumMaster: false, esDeveloper: true, activo: true }
     ],
     definitionOfDone: "Los criterios de aceptación se cumplen y el cambio está validado por el equipo.",
     pendingInvitations: []
@@ -227,7 +227,9 @@ const tablerosSimulados = {
 };
 
 function obtenerConfiguracion(projectId) {
-  return configuracionProyectos[String(projectId)] ?? configuracionProyectos["101"];
+  const configuracion = configuracionProyectos[String(projectId)];
+  if (!configuracion) throw new Error("No fue posible encontrar el proyecto.");
+  return configuracion;
 }
 
 function diasEntre(fechaInicio, fechaFin) {
@@ -289,6 +291,24 @@ export async function obtenerResumenCierreSprint(projectId, sprintId) {
   const cierre = cierresSimulados[String(sprintId)];
   if (!cierre) throw new Error("No se encontró el resumen de cierre del Sprint");
   return structuredClone(cierre);
+}
+
+export async function iniciarCierreSprint(projectId, sprintId) {
+  const sprint = sprintsSimulados[String(projectId)];
+  if (!sprint || sprint.sprintId !== Number(sprintId) || sprint.estado !== "ACTIVO") {
+    throw new Error("El Sprint ya no puede iniciar el cierre");
+  }
+
+  sprint.estado = "EN_CIERRE";
+  sprint.fechaInicioCierre = new Date().toISOString();
+  return {
+    sprintId: sprint.sprintId,
+    estado: sprint.estado,
+    fechaInicioCierre: sprint.fechaInicioCierre,
+    boardReadOnly: true,
+    reviewDisponible: true,
+    retrospectiveDisponible: false
+  };
 }
 
 export async function actualizarEstadoCierreSprint(projectId, sprintId, cambios) {
@@ -403,7 +423,8 @@ async function asegurarTablero(projectId, sprint) {
 }
 
 export async function obtenerEquipoProyecto(projectId) {
-  const equipo = equiposSimulados[String(projectId)] ?? { members: [], definitionOfDone: null, pendingInvitations: [] };
+  const equipo = equiposSimulados[String(projectId)];
+  if (!equipo) throw new Error("No fue posible encontrar el proyecto.");
   return structuredClone(equipo);
 }
 

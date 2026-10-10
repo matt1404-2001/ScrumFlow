@@ -176,7 +176,10 @@ export async function inicializarSprint(contenedor, projectId) {
     const estado = sprint?.estado ?? "SIN_SPRINT";
     if (estado === "ACTIVO") {
       contenedor.innerHTML = `<section class="sprint" data-estado="ACTIVO"><div data-vista-sprint-activo></div></section>`;
-      await inicializarSprintActivo(contenedor.querySelector("[data-vista-sprint-activo]"), projectId, sprint);
+      await inicializarSprintActivo(contenedor.querySelector("[data-vista-sprint-activo]"), projectId, sprint, async () => {
+        sprint = await obtenerSprintActual(projectId);
+        await renderizar();
+      });
       return;
     }
     if (estado === "EN_CIERRE" || estado === "FINALIZADO") {

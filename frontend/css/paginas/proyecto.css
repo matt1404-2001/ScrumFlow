@@ -235,6 +235,35 @@
   width: min(100%, 1040px);
 }
 
+.accion-proyecto {
+  justify-self: end;
+  padding: 8px 12px;
+  border: 1px solid var(--color-borde-fuerte);
+  border-radius: var(--radio-sm);
+  background: var(--color-superficie);
+  color: var(--color-primario);
+  cursor: pointer;
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.panel-proyecto__fondo { position: fixed; z-index: 50; inset: 0; background: rgb(20 27 41 / 34%); }
+.panel-proyecto { position: fixed; z-index: 51; top: 0; right: 0; display: flex; width: min(100%, 500px); height: 100svh; flex-direction: column; background: #fff; box-shadow: -20px 0 60px -34px rgb(20 30 52 / 48%); }
+.panel-proyecto header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 28px 30px 23px; border-bottom: 1px solid var(--color-borde); }
+.panel-proyecto header p { margin: 0 0 4px; color: var(--color-texto-secundario); font-size: .7rem; font-weight: 800; }
+.panel-proyecto h2 { margin: 0; font-family: var(--fuente-titulo); font-size: 1.4rem; }
+.panel-proyecto header button { width: 36px; height: 36px; border: 1px solid var(--color-borde); border-radius: 9px; background: #fff; color: var(--color-texto-secundario); cursor: pointer; font-size: 1.4rem; }
+.panel-proyecto form { display: grid; gap: 20px; padding: 26px 30px; }
+.panel-proyecto label { display: grid; gap: 8px; color: var(--color-texto); font-size: .8rem; font-weight: 800; }
+.panel-proyecto label span { color: var(--color-texto-secundario); font-size: .7rem; font-weight: 600; }
+.panel-proyecto input, .panel-proyecto textarea { width: 100%; padding: 11px 13px; border: 1px solid var(--color-borde-fuerte); border-radius: 9px; color: var(--color-texto); font: inherit; }
+.panel-proyecto textarea { resize: vertical; }
+.panel-proyecto [data-error-proyecto] { min-height: 1.1em; margin: 0; color: #a33a3a; font-size: .75rem; font-weight: 700; }
+.panel-proyecto footer { display: flex; justify-content: flex-end; gap: 10px; padding-top: 8px; }
+.panel-proyecto footer button { min-height: 42px; padding: 0 14px; border: 1px solid var(--color-borde-fuerte); border-radius: 8px; background: #fff; color: var(--color-texto); cursor: pointer; font-weight: 800; }
+.panel-proyecto footer button[type="submit"] { border-color: var(--color-primario); background: var(--color-primario); color: #fff; }
+body.panel-proyecto-abierto { overflow: hidden; }
+
 .encabezado-seccion {
   max-width: 720px;
   padding-bottom: 29px;
@@ -395,6 +424,7 @@
   .contenido-proyecto {
     padding: 38px 24px 64px;
   }
+
 }
 
 @media (max-width: 430px) {
