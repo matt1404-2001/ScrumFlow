@@ -26,7 +26,8 @@ public sealed class ScrumFlowDbContext(DbContextOptions<ScrumFlowDbContext> opti
             builder.ToTable("MiembroProyecto"); builder.HasKey(x => x.MiembroProyectoId);
             builder.Property(x => x.MiembroProyectoId).HasColumnName("miembro_proyecto_id"); builder.Property(x => x.ProyectoId).HasColumnName("proyecto_id");
             builder.Property(x => x.UsuarioId).HasColumnName("usuario_id"); builder.Property(x => x.EsAdministrador).HasColumnName("es_administrador");
-            builder.Property(x => x.EsProductOwner).HasColumnName("es_product_owner"); builder.Property(x => x.Activo).HasColumnName("activo");
+            builder.Property(x => x.EsProductOwner).HasColumnName("es_product_owner"); builder.Property(x => x.EsDeveloper).HasColumnName("es_developer");
+            builder.Property(x => x.Activo).HasColumnName("activo");
         });
         modelBuilder.Entity<ElementoBacklog>(builder =>
         {

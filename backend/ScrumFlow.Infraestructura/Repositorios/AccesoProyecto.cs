@@ -9,6 +9,7 @@ namespace ScrumFlow.Infraestructura.Repositorios;
 public sealed class AccesoProyecto(ScrumFlowDbContext db, IUsuarioActual usuarioActual) : IAccesoProyecto
 {
     public Task VerificarMiembroAsync(long proyectoId, CancellationToken ct) => VerificarAsync(proyectoId, _ => true, "No tienes acceso a este proyecto.", ct);
+    public Task VerificarDeveloperAsync(long proyectoId, CancellationToken ct) => VerificarAsync(proyectoId, miembro => miembro.EsDeveloper, "Solo los Developers pueden registrar la estimación.", ct);
     public Task VerificarProductOwnerAsync(long proyectoId, CancellationToken ct) => VerificarAsync(proyectoId, miembro => miembro.EsProductOwner, "Solo el Product Owner puede actualizar el Product Goal.", ct);
     public Task VerificarAdministradorAsync(long proyectoId, CancellationToken ct) => VerificarAsync(proyectoId, miembro => miembro.EsAdministrador, "No tienes permiso para realizar esta acción.", ct);
 

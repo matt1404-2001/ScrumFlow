@@ -42,7 +42,23 @@ public sealed class OrdenRequestDto
     public List<OrdenDto>? Items { get; set; }
 }
 
+public sealed class ParteDivisionDto
+{
+    public string? Titulo { get; set; }
+    public string? Descripcion { get; set; }
+    public string? Prioridad { get; set; }
+    public int? Estimacion { get; set; }
+    public string? CriteriosAceptacion { get; set; }
+}
+
+public sealed class DivisionRequestDto
+{
+    public List<ParteDivisionDto>? Items { get; set; }
+}
+
 public sealed record ElementoBacklogDto(long ElementoBacklogId, string Titulo, string? Descripcion, string Prioridad, int Posicion, int? Estimacion, string? CriteriosAceptacion, bool Preparado, IReadOnlyList<string> FaltantesPreparacion, bool Retirado, long? SprintActualId);
 public sealed record BacklogResponseDto(long ProjectId, string? ProductGoal, IReadOnlyList<ElementoBacklogDto> Items);
 public sealed record ProductGoalResponseDto(long ProjectId, string? ProductGoal);
 public sealed record RetiroResponseDto(long ElementoBacklogId, string Resultado);
+public sealed record ElementoCreadoDivisionDto(long ElementoBacklogId, string Titulo, int Posicion, string Prioridad);
+public sealed record DivisionResponseDto(long OriginalItemId, bool OriginalRetirado, IReadOnlyList<ElementoCreadoDivisionDto> CreatedItems);

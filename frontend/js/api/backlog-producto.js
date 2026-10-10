@@ -35,3 +35,10 @@ export async function reordenarProductBacklog(projectId, orden) {
 export async function retirarElementoBacklog(projectId, itemId) {
   return solicitarApi(`/api/proyectos/${projectId}/backlog/${itemId}`, { method: "DELETE" });
 }
+
+export async function dividirElementoBacklog(projectId, itemId, items) {
+  return solicitarApi(`/api/proyectos/${projectId}/backlog/${itemId}/dividir`, {
+    method: "POST",
+    body: JSON.stringify({ items })
+  });
+}

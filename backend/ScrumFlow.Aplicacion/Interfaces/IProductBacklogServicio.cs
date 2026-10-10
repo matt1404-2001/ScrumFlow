@@ -15,4 +15,6 @@ public interface IProductBacklogServicio
     Task<ResultadoRetiroModelo> RetirarAsync(long proyectoId, long elementoId, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<OrdenElementoModelo>> ReordenarAsync(long proyectoId, IReadOnlyList<OrdenElementoModelo> orden, CancellationToken cancellationToken);
+
+    Task<ResultadoDivisionModelo> DividirAsync(long proyectoId, long elementoId, IReadOnlyList<ParteDivisionModelo> partes, CancellationToken cancellationToken);
 }

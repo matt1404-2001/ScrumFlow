@@ -21,3 +21,9 @@ public sealed record ElementoBacklogModelo(
 public sealed record BacklogModelo(long ProjectId, string? ProductGoal, IReadOnlyList<ElementoBacklogModelo> Items);
 
 public sealed record ResultadoRetiroModelo(long ElementoBacklogId, string Resultado);
+
+public sealed record ParteDivisionModelo(string Titulo, string? Descripcion, Prioridad Prioridad, int? Estimacion, string? CriteriosAceptacion);
+
+public sealed record ElementoCreadoDivisionModelo(long ElementoBacklogId, string Titulo, int Posicion, string Prioridad);
+
+public sealed record ResultadoDivisionModelo(long OriginalItemId, bool OriginalRetirado, IReadOnlyList<ElementoCreadoDivisionModelo> CreatedItems);

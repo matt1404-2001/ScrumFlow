@@ -44,14 +44,17 @@ public sealed class ProductBacklogServicio(IProductBacklogDbContext db, IAccesoP
         await acceso.VerificarMiembroAsync(proyectoId, ct);
         if (!modelo.TituloEspecificado && !modelo.DescripcionEspecificada && !modelo.PrioridadEspecificada && !modelo.EstimacionEspecificada && !modelo.CriteriosEspecificados)
             throw Invalido("La solicitud debe incluir al menos un campo.");
-        var entidad = await db.ElementosBacklog.SingleOrDefaultAsync(i => i.ProyectoId == proyectoId && i.ElementoBacklogId == elementoId, ct) ?? throw NoEncontrado("No fue posible encontrar el elemento.");
+        if (modelo.EstimacionEspecificada) await acceso.VerificarDeveloperAsync(proyectoId, ct);
+        var entidad = await db.ElementosBacklog.Include(i => i.ElementosSprint).ThenInclude(e => e.Sprint)
+            .SingleOrDefaultAsync(i => i.ProyectoId == proyectoId && i.ElementoBacklogId == elementoId, ct) ?? throw NoEncontrado("No fue posible encontrar el elemento.");
         if (entidad.Retirado) throw Conflicto("El elemento ya fue retirado del Product Backlog.");
+        ValidarSprintRefinable(entidad);
         if (modelo.TituloEspecificado) { ValidarTitulo(modelo.Titulo); entidad.Titulo = modelo.Titulo!.Trim(); }
-        if (modelo.DescripcionEspecificada) entidad.Descripcion = Normalizar(modelo.Descripcion);
+        if (modelo.DescripcionEspecificada) { ValidarTextoOpcional(modelo.Descripcion, "La descripción no puede estar vacía."); entidad.Descripcion = Normalizar(modelo.Descripcion); }
         if (modelo.PrioridadEspecificada) entidad.Prioridad = ATexto(modelo.Prioridad!.Value);
         if (modelo.EstimacionEspecificada && modelo.Estimacion is <= 0) throw Invalido("La estimación debe ser mayor que cero.");
         if (modelo.EstimacionEspecificada) entidad.Estimacion = modelo.Estimacion;
-        if (modelo.CriteriosEspecificados) entidad.CriteriosAceptacion = Normalizar(modelo.CriteriosAceptacion);
+        if (modelo.CriteriosEspecificados) { ValidarTextoOpcional(modelo.CriteriosAceptacion, "Los criterios de aceptación no pueden estar vacíos."); entidad.CriteriosAceptacion = Normalizar(modelo.CriteriosAceptacion); }
         await db.SaveChangesAsync(ct);
         return Mapear(entidad);
     }
@@ -92,6 +95,48 @@ public sealed class ProductBacklogServicio(IProductBacklogDbContext db, IAccesoP
         return orden.OrderBy(x => x.Posicion).ToList();
     }
 
+    public async Task<ResultadoDivisionModelo> DividirAsync(long proyectoId, long elementoId, IReadOnlyList<ParteDivisionModelo> partes, CancellationToken ct)
+    {
+        await acceso.VerificarMiembroAsync(proyectoId, ct);
+        if (partes.Count < 2) throw Invalido("Agrega al menos dos elementos para realizar la división");
+        if (partes.Any(x => x.Estimacion.HasValue)) await acceso.VerificarDeveloperAsync(proyectoId, ct);
+
+        var original = await db.ElementosBacklog.Include(i => i.ElementosSprint).ThenInclude(e => e.Sprint)
+            .SingleOrDefaultAsync(i => i.ProyectoId == proyectoId && i.ElementoBacklogId == elementoId, ct) ?? throw NoEncontrado("No fue posible encontrar el elemento.");
+        if (original.Retirado) throw Conflicto("El elemento ya fue retirado del Product Backlog.");
+        ValidarSprintRefinable(original);
+
+        foreach (var parte in partes)
+        {
+            ValidarTitulo(parte.Titulo);
+            ValidarTextoOpcional(parte.Descripcion, "La descripción no puede estar vacía.");
+            ValidarTextoOpcional(parte.CriteriosAceptacion, "Los criterios de aceptación no pueden estar vacíos.");
+            if (parte.Estimacion is <= 0) throw Invalido("La estimación debe ser mayor que cero.");
+        }
+
+        var posteriores = await db.ElementosBacklog
+            .Where(i => i.ProyectoId == proyectoId && !i.Retirado && i.ElementoBacklogId != elementoId && i.Posicion > original.Posicion)
+            .ToListAsync(ct);
+        foreach (var item in posteriores) item.Posicion += partes.Count - 1;
+
+        var creados = partes.Select((parte, indice) => new ElementoBacklog
+        {
+            ProyectoId = proyectoId,
+            Titulo = parte.Titulo.Trim(),
+            Descripcion = Normalizar(parte.Descripcion),
+            Prioridad = ATexto(parte.Prioridad),
+            Posicion = original.Posicion + indice,
+            Estimacion = parte.Estimacion,
+            CriteriosAceptacion = Normalizar(parte.CriteriosAceptacion)
+        }).ToList();
+        original.Retirado = true;
+        original.FechaRetiro = DateTime.UtcNow;
+        db.ElementosBacklog.AddRange(creados);
+        await db.SaveChangesAsync(ct);
+
+        return new(elementoId, true, creados.Select(x => new ElementoCreadoDivisionModelo(x.ElementoBacklogId, x.Titulo, x.Posicion, x.Prioridad)).ToList());
+    }
+
     private async Task NormalizarPosicionesAsync(long proyectoId, long elementoExcluidoId, CancellationToken ct)
     {
         var restantes = await db.ElementosBacklog.Where(i => i.ProyectoId == proyectoId && !i.Retirado && i.ElementoBacklogId != elementoExcluidoId).OrderBy(i => i.Posicion).ToListAsync(ct);
@@ -108,7 +153,17 @@ public sealed class ProductBacklogServicio(IProductBacklogDbContext db, IAccesoP
 
     private static string ATexto(Prioridad prioridad) => prioridad switch { Prioridad.Baja => "BAJA", Prioridad.Media => "MEDIA", Prioridad.Alta => "ALTA", _ => throw Invalido("La prioridad no es válida.") };
     private static string? Normalizar(string? texto) => string.IsNullOrWhiteSpace(texto) ? null : texto.Trim();
-    private static void ValidarTitulo(string? titulo) { if (string.IsNullOrWhiteSpace(titulo)) throw Invalido("Ingresa un título para el elemento"); }
+    private static void ValidarTitulo(string? titulo)
+    {
+        if (string.IsNullOrWhiteSpace(titulo)) throw Invalido("Ingresa un título para el elemento");
+        if (titulo.Trim().Length > 200) throw Invalido("El título no puede superar 200 caracteres.");
+    }
+    private static void ValidarTextoOpcional(string? texto, string mensaje) { if (texto is not null && string.IsNullOrWhiteSpace(texto)) throw Invalido(mensaje); }
+    private static void ValidarSprintRefinable(ElementoBacklog entidad)
+    {
+        if (entidad.ElementosSprint.Any(e => e.Sprint.Estado is "ACTIVO" or "EN_CIERRE"))
+            throw Conflicto("El elemento no puede refinarse mientras el Sprint está en ejecución o cierre");
+    }
     private static ErrorAplicacionException Invalido(string mensaje) => new(TipoErrorAplicacion.SolicitudInvalida, mensaje);
     private static ErrorAplicacionException NoEncontrado(string mensaje) => new(TipoErrorAplicacion.NoEncontrado, mensaje);
     private static ErrorAplicacionException Conflicto(string mensaje) => new(TipoErrorAplicacion.Conflicto, mensaje);
