@@ -1,0 +1,186 @@
+:root {
+  color-scheme: light;
+  --color-fondo: #f5f7fb;
+  --color-superficie: #ffffff;
+  --color-texto: #172033;
+  --color-texto-secundario: #556176;
+  --color-borde: #dce2ed;
+  --color-borde-fuerte: #cbd3e1;
+  --color-primario: #3156d9;
+  --color-primario-hover: #2748bd;
+  --color-primario-suave: #e9edff;
+  --color-exito: #267c60;
+  --color-exito-suave: #e6f4ef;
+  --color-atencion: #9b5a19;
+  --color-atencion-suave: #fff1df;
+  --sombra-elevada: 0 24px 60px -32px rgb(29 42 74 / 32%);
+  --radio-sm: 10px;
+  --radio-md: 14px;
+  --radio-lg: 24px;
+  --ancho-contenido: 1180px;
+  --fuente-texto: "Aptos", "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  --fuente-titulo: "Aptos Display", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: var(--fuente-texto);
+  font-size: 16px;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::selection {
+  background: var(--color-primario);
+  color: #ffffff;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+svg {
+  display: block;
+}
+
+:focus-visible {
+  outline: 3px solid rgb(49 86 217 / 38%);
+  outline-offset: 3px;
+}
+
+.contenedor {
+  width: min(calc(100% - 48px), var(--ancho-contenido));
+  margin-inline: auto;
+}
+
+.saltar-contenido {
+  position: fixed;
+  z-index: 100;
+  top: 12px;
+  left: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radio-sm);
+  background: var(--color-texto);
+  color: #ffffff;
+  font-weight: 700;
+  transform: translateY(-160%);
+  transition: transform 160ms ease-out;
+}
+
+.saltar-contenido:focus {
+  transform: translateY(0);
+}
+
+.boton {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radio-sm);
+  font-size: 0.95rem;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease-out,
+    border-color 160ms ease-out,
+    color 160ms ease-out,
+    box-shadow 160ms ease-out,
+    transform 160ms ease-out;
+}
+
+.boton:hover {
+  transform: translateY(-1px);
+}
+
+.boton:active {
+  transform: translateY(0);
+}
+
+.boton svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.boton--principal,
+.boton--compacto {
+  background: var(--color-primario);
+  color: #ffffff;
+  box-shadow: 0 10px 24px -14px rgb(49 86 217 / 78%);
+}
+
+.boton--principal:hover,
+.boton--compacto:hover {
+  background: var(--color-primario-hover);
+}
+
+.boton--secundario {
+  border-color: var(--color-borde-fuerte);
+  background: rgb(255 255 255 / 62%);
+  color: var(--color-texto);
+}
+
+.boton--secundario:hover {
+  border-color: #aeb9cc;
+  background: #ffffff;
+}
+
+.boton--compacto {
+  min-height: 40px;
+  padding-inline: 16px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .contenedor {
+    width: min(calc(100% - 32px), var(--ancho-contenido));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
