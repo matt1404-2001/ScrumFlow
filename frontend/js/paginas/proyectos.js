@@ -1,51 +1,19 @@
-const proyectosIniciales = [
-  {
-    projectId: 101,
-    nombre: "Sistema de Gestión Scrum",
-    descripcion: "Plataforma académica para organizar el trabajo y los eventos de un equipo Scrum.",
-    esAdministrador: true,
-    estado: "Sprint activo"
-  },
-  {
-    projectId: 204,
-    nombre: "Portal de Ventas",
-    descripcion: "Mejoras al proceso comercial y seguimiento de oportunidades del equipo.",
-    esAdministrador: false,
-    estado: "Sin Sprint activo"
-  },
-  {
-    projectId: 318,
-    nombre: "Experiencia de Clientes",
-    descripcion: "Iniciativas para simplificar el acompañamiento y la atención posterior a la compra.",
-    esAdministrador: true,
-    estado: "Sin Sprint activo"
-  }
-];
+import {
+  crearProyecto,
+  obtenerInvitacionesPendientes,
+  obtenerProyectos,
+  responderInvitacion
+} from "../api/proyectos.js";
 
-const invitacionesIniciales = [
-  {
-    invitationId: 42,
-    project: { projectId: 412, nombre: "Aplicación de Inventario" },
-    invitadoPor: { nombre: "Carlos Méndez" },
-    estado: "PENDIENTE",
-    fechaCreacion: "2026-10-08T14:30:00Z"
-  },
-  {
-    invitationId: 43,
-    project: { projectId: 506, nombre: "Mejora de Operaciones" },
-    invitadoPor: { nombre: "Ana Torres" },
-    estado: "PENDIENTE",
-    fechaCreacion: "2026-10-09T09:15:00Z"
-  }
-];
-
-const proyectos = [...proyectosIniciales];
-const invitaciones = invitacionesIniciales.filter(({ estado }) => estado === "PENDIENTE");
+let proyectos = [];
+let invitaciones = [];
+let errorCarga = null;
 
 const listaProyectos = document.querySelector("[data-lista-proyectos]");
 const listaInvitaciones = document.querySelector("[data-lista-invitaciones]");
 const conteoProyectos = document.querySelector("[data-conteo-proyectos]");
 const conteoInvitaciones = document.querySelector("[data-conteo-invitaciones]");
+const estadoInvitaciones = document.querySelector("[data-estado-invitaciones]");
 const modal = document.querySelector("[data-modal-proyecto]");
 const formulario = document.querySelector("[data-formulario-proyecto]");
 const nombreProyecto = document.querySelector("#nombre-proyecto");
@@ -100,15 +68,20 @@ function crearEstadoVacio() {
   `;
 }
 
+function crearEstadoError() {
+  return `<div class="estado-vacio" role="alert"><div class="estado-vacio__contenido"><h3>No fue posible cargar tus proyectos</h3><p>Los datos simulados no están disponibles en este momento.</p><button class="boton boton--principal" type="button" data-reintentar-proyectos>Reintentar</button></div></div>`;
+}
+
 function renderizarProyectos() {
   if (!listaProyectos || !conteoProyectos) return;
 
   conteoProyectos.textContent = `${proyectos.length} ${proyectos.length === 1 ? "proyecto" : "proyectos"}`;
-  listaProyectos.innerHTML = proyectos.length
+  listaProyectos.innerHTML = errorCarga ? crearEstadoError() : proyectos.length
     ? proyectos.map(crearTarjetaProyecto).join("")
     : crearEstadoVacio();
 
   listaProyectos.querySelector("[data-abrir-modal-vacio]")?.addEventListener("click", abrirModal);
+  listaProyectos.querySelector("[data-reintentar-proyectos]")?.addEventListener("click", cargarDatos);
 }
 
 function renderizarInvitaciones() {
@@ -119,13 +92,17 @@ function renderizarInvitaciones() {
 
   listaInvitaciones.innerHTML = invitaciones.length
     ? invitaciones.map((invitacion) => `
-        <article class="invitacion">
-          <div class="invitacion__superior">
-            <h3>${escaparHtml(invitacion.project.nombre)}</h3>
-            <span class="invitacion__estado">Pendiente</span>
-          </div>
-          <p>Invitación de ${escaparHtml(invitacion.invitadoPor.nombre)}</p>
-        </article>
+          <article class="invitacion" data-invitacion-id="${invitacion.invitationId}">
+            <div class="invitacion__superior">
+              <h3>${escaparHtml(invitacion.project.nombre)}</h3>
+              <span class="invitacion__estado">Pendiente</span>
+            </div>
+            <p>Invitación de ${escaparHtml(invitacion.invitadoPor.nombre)}</p>
+            <div class="invitacion__acciones">
+              <button class="boton boton--compacto" type="button" data-decision-invitacion="ACEPTAR" data-invitation-id="${invitacion.invitationId}">Aceptar</button>
+              <button class="boton boton--texto" type="button" data-decision-invitacion="RECHAZAR" data-invitation-id="${invitacion.invitationId}">Rechazar</button>
+            </div>
+          </article>
       `).join("")
     : '<p class="estado-vacio-invitaciones">No tienes invitaciones pendientes.</p>';
 }
@@ -139,14 +116,62 @@ function abrirModal() {
   nombreProyecto?.focus();
 }
 
+async function responderInvitacionDesdeLaVista(evento) {
+  const boton = evento.target.closest("[data-decision-invitacion]");
+  if (!boton || boton.disabled) return;
+
+  const decision = boton.dataset.decisionInvitacion;
+  const invitacion = invitaciones.find(({ invitationId }) => invitationId === Number(boton.dataset.invitationId));
+  if (!invitacion) return;
+
+  const tarjeta = boton.closest("[data-invitacion-id]");
+  tarjeta?.setAttribute("aria-busy", "true");
+  tarjeta?.querySelectorAll("button").forEach((accion) => { accion.disabled = true; });
+  if (estadoInvitaciones) estadoInvitaciones.textContent = "Guardando tu respuesta...";
+
+  try {
+    const resultado = await responderInvitacion(invitacion.invitationId, decision);
+    const indice = invitaciones.indexOf(invitacion);
+    invitaciones.splice(indice, 1);
+
+    if (resultado.proyecto) proyectos.unshift(resultado.proyecto);
+    renderizarProyectos();
+    renderizarInvitaciones();
+    if (estadoInvitaciones) {
+      estadoInvitaciones.textContent = decision === "ACEPTAR"
+        ? "Ahora formas parte del proyecto."
+        : "Invitación rechazada.";
+    }
+  } catch (error) {
+    tarjeta?.removeAttribute("aria-busy");
+    tarjeta?.querySelectorAll("button").forEach((accion) => { accion.disabled = false; });
+    if (estadoInvitaciones) estadoInvitaciones.textContent = error.message;
+  }
+}
+
 function cerrarModal() {
   modal?.close();
+}
+
+async function cargarDatos() {
+  errorCarga = null;
+  renderizarProyectos();
+  try {
+    [proyectos, invitaciones] = await Promise.all([obtenerProyectos(), obtenerInvitacionesPendientes()]);
+  } catch (error) {
+    errorCarga = error;
+    proyectos = [];
+    invitaciones = [];
+  }
+  renderizarProyectos();
+  renderizarInvitaciones();
 }
 
 document.querySelector("[data-abrir-modal]")?.addEventListener("click", abrirModal);
 document.querySelectorAll("[data-cerrar-modal]").forEach((boton) => {
   boton.addEventListener("click", cerrarModal);
 });
+listaInvitaciones?.addEventListener("click", responderInvitacionDesdeLaVista);
 
 modal?.addEventListener("click", (evento) => {
   if (evento.target === modal) cerrarModal();
@@ -159,7 +184,7 @@ nombreProyecto?.addEventListener("input", () => {
   }
 });
 
-formulario?.addEventListener("submit", (evento) => {
+formulario?.addEventListener("submit", async (evento) => {
   evento.preventDefault();
   const nombre = nombreProyecto.value.trim();
 
@@ -170,17 +195,10 @@ formulario?.addEventListener("submit", (evento) => {
     return;
   }
 
-  proyectos.unshift({
-    projectId: Date.now(),
-    nombre,
-    descripcion: descripcionProyecto.value.trim(),
-    esAdministrador: true,
-    estado: "Sin Sprint activo"
-  });
+  proyectos.unshift(await crearProyecto({ nombre, descripcion: descripcionProyecto.value.trim() }));
 
   renderizarProyectos();
   cerrarModal();
 });
 
-renderizarProyectos();
-renderizarInvitaciones();
+cargarDatos();

@@ -496,7 +496,8 @@ body.arrastrando-sprint * { cursor: grabbing !important; user-select: none; }
 }
 
 .columna-sprint__vacia p { max-width: 24ch; margin: 0; font-size: 0.74rem; }
-.sprint-activo__estado { position: fixed; z-index: 45; right: 24px; bottom: 24px; min-height: 0; margin: 0; color: var(--color-exito); font-size: 0.78rem; font-weight: 750; }
+.sprint-activo__pie { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--color-borde); }
+.sprint-activo__estado { min-height: 0; margin: 0; color: var(--color-exito); font-size: 0.78rem; font-weight: 750; }
 .sprint-activo__estado:not(:empty) { max-width: min(420px, calc(100vw - 40px)); padding: 12px 15px; border: 1px solid #cce4da; border-radius: 9px; background: #f1faf6; box-shadow: 0 16px 38px -24px rgb(25 63 50 / 55%); }
 .sprint-activo__estado[data-tipo="error"] { border-color: #ebcfad; background: #fff6e9; color: #7d4718; }
 
@@ -698,6 +699,10 @@ body.panel-sprint-abierto { overflow: hidden; }
 .cierre-siguiente > p { margin: 0 0 22px; color: #64718a; font-size: 0.78rem; }
 .enlace-evento { display: inline-flex; min-height: 43px; align-items: center; justify-content: center; gap: 9px; padding: 0 15px; border-radius: 9px; background: var(--color-primario); color: #ffffff; font-size: 0.76rem; font-weight: 800; text-decoration: none; }
 .enlace-evento:hover { background: var(--color-primario-hover); }
+.enlace-evento--secundario { background: #e9edff; color: var(--color-primario); }
+.enlace-evento--secundario:hover { background: #dfe5ff; }
+.sprint-continuacion { margin-top: 24px; }
+.sprint-continuacion__acciones { display: flex; flex-wrap: wrap; gap: 10px; }
 .enlace-evento svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 .cierre-siguiente dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 25px 0 0; padding-top: 20px; border-top: 1px solid #dfe4f2; }
 .cierre-siguiente dl div { display: grid; gap: 2px; }
@@ -773,6 +778,8 @@ body.panel-sprint-abierto { overflow: hidden; }
 
 @media (max-width: 700px) {
   .encabezado-sprint { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .sprint-activo__pie { align-items: stretch; flex-direction: column; }
+  .sprint-activo__pie .boton { width: 100%; justify-content: center; }
   .encabezado-sprint__titulo { align-items: flex-start; flex-direction: column; gap: 9px; }
   .sprint-configuracion { padding: 22px 20px 24px; }
   .sprint-fechas { grid-template-columns: 1fr 1fr; }

@@ -14,7 +14,8 @@ const backlogsSimulados = {
         preparado: true,
         faltantesPreparacion: [],
         retirado: false,
-        sprintActualId: null
+        sprintActualId: null,
+        historialSprintIds: []
       },
       {
         elementoBacklogId: 42,
@@ -27,7 +28,8 @@ const backlogsSimulados = {
         preparado: true,
         faltantesPreparacion: [],
         retirado: false,
-        sprintActualId: null
+        sprintActualId: null,
+        historialSprintIds: []
       },
       {
         elementoBacklogId: 43,
@@ -40,7 +42,8 @@ const backlogsSimulados = {
         preparado: true,
         faltantesPreparacion: [],
         retirado: false,
-        sprintActualId: null
+        sprintActualId: null,
+        historialSprintIds: []
       },
       {
         elementoBacklogId: 44,
@@ -53,7 +56,8 @@ const backlogsSimulados = {
         preparado: false,
         faltantesPreparacion: ["descripcion", "estimacion"],
         retirado: false,
-        sprintActualId: null
+        sprintActualId: null,
+        historialSprintIds: [6998]
       }
     ]
   },
@@ -78,11 +82,15 @@ const backlogsSimulados = {
   },
   "318": { projectId: 318, productGoal: null, items: [] }
 };
+const proyectosAdministrados = new Set(["101", "318"]);
+const proyectosConProductOwner = new Set(["101", "204"]);
 
 let siguienteId = 100;
 
 function obtenerDatos(projectId) {
-  return backlogsSimulados[String(projectId)] ?? backlogsSimulados["101"];
+  const datos = backlogsSimulados[String(projectId)];
+  if (!datos) throw new Error("No fue posible encontrar el proyecto.");
+  return datos;
 }
 
 function recalcularPreparacion(item) {
@@ -102,6 +110,7 @@ export async function obtenerProductBacklog(projectId) {
 }
 
 export async function actualizarProductGoal(projectId, productGoal) {
+  if (!proyectosConProductOwner.has(String(projectId))) throw new Error("Solo el Product Owner puede actualizar el Product Goal");
   const backlog = obtenerDatos(projectId);
   backlog.productGoal = productGoal.trim() || null;
   return { projectId: backlog.projectId, productGoal: backlog.productGoal };
@@ -165,4 +174,23 @@ export async function dividirElementoBacklog(projectId, itemId, partes) {
   backlog.items.splice(indice, 1, ...nuevos);
   normalizarPosiciones(backlog.items);
   return { originalItemId: original.elementoBacklogId, originalRetirado: true, createdItems: structuredClone(nuevos) };
+}
+
+// Equivale a DELETE /api/proyectos/{projectId}/pila-producto/{itemId}.
+export async function retirarElementoBacklog(projectId, itemId) {
+  if (!proyectosAdministrados.has(String(projectId))) throw new Error("No tienes permiso para realizar esta acción.");
+  const backlog = obtenerDatos(projectId);
+  const indice = backlog.items.findIndex((item) => item.elementoBacklogId === Number(itemId));
+  const item = backlog.items[indice];
+  if (!item) throw new Error("No fue posible encontrar el elemento.");
+  if (item.sprintActualId) throw new Error("El elemento no puede retirarse mientras pertenezca a un Sprint activo");
+
+  if (item.historialSprintIds?.length || item.retirado) {
+    item.retirado = true;
+    return { elementoBacklogId: item.elementoBacklogId, resultado: "RETIRADO" };
+  }
+
+  backlog.items.splice(indice, 1);
+  normalizarPosiciones(backlog.items);
+  return { elementoBacklogId: item.elementoBacklogId, resultado: "ELIMINADO" };
 }

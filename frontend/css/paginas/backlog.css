@@ -306,6 +306,8 @@
 .backlog-vacio p { max-width: 46ch; margin: 9px 0 23px; color: var(--color-texto-secundario); font-size: 0.88rem; }
 .backlog__estado { position: fixed; z-index: 40; right: 24px; bottom: 24px; min-height: 0; margin: 0; padding: 0; }
 .backlog__estado:not(:empty) { padding: 11px 15px; border: 1px solid #cce4da; border-radius: 9px; background: #f1faf6; color: #21694f; box-shadow: 0 16px 38px -24px rgb(25 63 50 / 55%); font-size: 0.8rem; font-weight: 750; }
+.backlog__permisos { margin: 18px 0 0; color: #6b778b; font-size: .76rem; }
+.boton--peligro { border: 1px solid #e5caca; background: #fff7f7; color: #9b3935; }
 
 .panel-backlog__fondo { position: fixed; z-index: 30; inset: 0; background: rgb(24 33 52 / 22%); }
 .panel-backlog {

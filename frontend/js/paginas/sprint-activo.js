@@ -2,6 +2,7 @@ import {
   actualizarElementoSprint,
   crearComentarioSprint,
   crearImpedimentoSprint,
+  iniciarCierreSprint,
   obtenerElementoSprint,
   obtenerEquipoProyecto,
   obtenerTableroSprint,
@@ -158,7 +159,7 @@ function renderizarDetalle(item, equipo, sprint) {
     </aside>`;
 }
 
-export async function inicializarSprintActivo(contenedor, projectId, sprint) {
+export async function inicializarSprintActivo(contenedor, projectId, sprint, onCierreIniciado) {
   sesiones.get(contenedor)?.abort();
   const sesion = new AbortController();
   sesiones.set(contenedor, sesion);
@@ -216,7 +217,13 @@ export async function inicializarSprintActivo(contenedor, projectId, sprint) {
           </div>
         </header>
         ${renderizarTablero(tablero)}
-        <p class="sprint-activo__estado" data-estado-tablero role="status" aria-live="polite"></p>
+        <footer class="sprint-activo__pie">
+          <p class="sprint-activo__estado" data-estado-tablero role="status" aria-live="polite"></p>
+          <button class="boton boton--principal" type="button" data-iniciar-cierre>
+            Iniciar cierre
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12M12 6l4 4-4 4"></path></svg>
+          </button>
+        </footer>
         <div data-panel-sprint></div>
       </div>`;
   }
@@ -269,6 +276,18 @@ export async function inicializarSprintActivo(contenedor, projectId, sprint) {
   document.addEventListener("keydown", manejarTeclado, { signal: sesion.signal });
 
   contenedor.addEventListener("click", async (evento) => {
+    const iniciarCierre = evento.target.closest("[data-iniciar-cierre]");
+    if (iniciarCierre) {
+      iniciarCierre.disabled = true;
+      try {
+        await iniciarCierreSprint(projectId, sprint.sprintId);
+        await onCierreIniciado();
+      } catch (error) {
+        iniciarCierre.disabled = false;
+        anunciar(error.message, "error");
+      }
+      return;
+    }
     const tarjeta = evento.target.closest("[data-abrir-tarjeta]");
     if (tarjeta) {
       if (seArrastro) {

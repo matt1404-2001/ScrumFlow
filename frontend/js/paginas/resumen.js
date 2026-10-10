@@ -25,10 +25,16 @@ function obtenerDiaSprint(sprint) {
   if (!sprint?.fechaInicio || !sprint?.fechaFin) return null;
   const inicio = new Date(`${sprint.fechaInicio}T00:00:00`);
   const fin = new Date(`${sprint.fechaFin}T00:00:00`);
-  const hoy = new Date("2026-10-10T00:00:00");
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
   const duracion = Math.round((fin - inicio) / 86400000) + 1;
   const dia = Math.min(Math.max(Math.round((hoy - inicio) / 86400000) + 1, 1), duracion);
   return { dia, duracion };
+}
+
+function obtenerFechaActual() {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
 }
 
 function renderizarProgreso(resumen) {
@@ -186,7 +192,7 @@ function renderizarResumen(contenedor, datos, projectId) {
   contenedor.innerHTML = `
     <header class="encabezado-resumen">
       <div><h1>Resumen</h1><p>${orientacion}</p></div>
-      <time datetime="2026-10-10">Actualizado hoy</time>
+      <time datetime="${obtenerFechaActual()}">Actualizado hoy</time>
     </header>
     <div class="resumen__principal">
       ${renderizarProgreso(resumen)}
@@ -222,5 +228,5 @@ export async function inicializarResumen(contenedor, projectId) {
 const contenedorResumen = document.querySelector("[data-resumen]");
 if (contenedorResumen) {
   const parametros = new URLSearchParams(window.location.search);
-  inicializarResumen(contenedorResumen, parametros.get("projectId") ?? "101");
+  inicializarResumen(contenedorResumen, parametros.get("projectId"));
 }

@@ -12,14 +12,6 @@
     <script type="module" src="../js/paginas/proyectos.js"></script>
   </head>
   <body>
-    <!--
-      THESIS: Elegir el contexto de trabajo debe sentirse como retomar el hilo, no administrar un sistema.
-      OWN-WORLD: El lienzo claro, azul profundo y señales breves de estado extienden la identidad actual de ScrumFlow.
-      STORY: La persona reconoce sus proyectos, atiende invitaciones pendientes y puede abrir un espacio nuevo sin salir de la vista.
-      FIRST VIEWPORT: Cabecera compacta, bienvenida y acción principal arriba; proyectos dominantes e invitaciones en una columna auxiliar.
-      FORM: Extensión directa del calm workflow canvas existente para una superficie de operación.
-      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
-    -->
     <a class="saltar-contenido" href="#contenido-principal">Saltar al contenido principal</a>
 
     <header class="cabecera-aplicacion">
@@ -66,6 +58,7 @@
             <span class="insignia-conteo" data-conteo-invitaciones></span>
           </div>
           <div class="invitaciones__lista" data-lista-invitaciones></div>
+          <p class="invitaciones__estado" data-estado-invitaciones role="status" aria-live="polite"></p>
         </aside>
       </div>
     </main>

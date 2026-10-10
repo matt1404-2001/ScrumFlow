@@ -55,6 +55,6 @@ if (raiz) {
       return;
     }
 
-    estado.textContent = "La conexión con el backend se habilitará próximamente.";
+    estado.textContent = "Cuenta creada correctamente en esta demo.";
   });
 }

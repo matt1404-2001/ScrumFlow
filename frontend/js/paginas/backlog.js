@@ -4,14 +4,15 @@ import {
   crearElementoBacklog,
   dividirElementoBacklog,
   obtenerProductBacklog,
-  reordenarProductBacklog
+  reordenarProductBacklog,
+  retirarElementoBacklog
 } from "../api/backlog.js";
 import { escaparAtributo, escaparHtml } from "../utilidades/html.js";
 
 const etiquetasPrioridad = { ALTA: "Alta", MEDIA: "Media", BAJA: "Baja" };
 const sesiones = new WeakMap();
 
-function renderizarLista(items) {
+function renderizarLista(items, puedeAdministrar) {
   if (!items.length) {
     return `
       <section class="backlog-vacio" aria-labelledby="titulo-backlog-vacio">
@@ -57,7 +58,7 @@ function renderizarLista(items) {
     </ol>`;
 }
 
-function renderizarPanel(item) {
+function renderizarPanel(item, puedeAdministrar) {
   const esNuevo = !item;
   return `
     <div class="panel-backlog__fondo" data-cerrar-panel></div>
@@ -114,14 +115,16 @@ function renderizarPanel(item) {
           </section>`}
         <p class="panel-backlog__estado" data-estado-panel aria-live="polite"></p>
         <footer class="panel-backlog__acciones">
-          ${esNuevo ? "" : `<button class="boton boton--secundario" type="button" data-mostrar-division>Dividir</button>`}
+          ${esNuevo ? "" : `<button class="boton boton--secundario" type="button" data-mostrar-division>Dividir</button>${puedeAdministrar ? `<button class="boton boton--peligro" type="button" data-retirar-elemento>Retirar</button>` : ""}`}
           <button class="boton boton--principal" type="submit">${esNuevo ? "Crear elemento" : "Guardar cambios"}</button>
         </footer>
       </form>
     </aside>`;
 }
 
-export async function inicializarBacklog(contenedor, projectId) {
+export async function inicializarBacklog(contenedor, projectId, permisos = {}) {
+  const puedeAdministrar = Boolean(permisos.puedeAdministrar);
+  const esProductOwner = Boolean(permisos.esProductOwner);
   sesiones.get(contenedor)?.abort();
   const sesion = new AbortController();
   sesiones.set(contenedor, sesion);
@@ -137,8 +140,9 @@ export async function inicializarBacklog(contenedor, projectId) {
   }
 
   function actualizarLista() {
-    contenedor.querySelector("[data-lista-backlog]").innerHTML = renderizarLista(backlog.items);
-    contenedor.querySelector("[data-conteo-backlog]").textContent = `${backlog.items.length} ${backlog.items.length === 1 ? "elemento" : "elementos"}`;
+    contenedor.querySelector("[data-lista-backlog]").innerHTML = renderizarLista(backlog.items.filter((item) => !item.retirado), puedeAdministrar);
+    const activos = backlog.items.filter((item) => !item.retirado);
+    contenedor.querySelector("[data-conteo-backlog]").textContent = `${activos.length} ${activos.length === 1 ? "elemento" : "elementos"}`;
   }
 
   function cerrarPanel() {
@@ -150,7 +154,7 @@ export async function inicializarBacklog(contenedor, projectId) {
   function abrirPanel(item = null) {
     elementoActivo = item;
     ultimoFoco = document.activeElement;
-    contenedor.querySelector("[data-panel-contenedor]").innerHTML = renderizarPanel(item);
+    contenedor.querySelector("[data-panel-contenedor]").innerHTML = renderizarPanel(item, puedeAdministrar);
     document.body.classList.add("panel-backlog-abierto");
     contenedor.querySelector("#titulo-item")?.focus();
   }
@@ -185,10 +189,10 @@ export async function inicializarBacklog(contenedor, projectId) {
           Nuevo elemento
         </button>
       </header>
-      <section class="product-goal" aria-labelledby="titulo-product-goal">
+       <section class="product-goal" aria-labelledby="titulo-product-goal">
         <div class="product-goal__simbolo" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5"></circle><path d="m15.5 8.5 4-4M16.5 4.5h3v3"></path></svg></div>
         <div class="product-goal__contenido">
-          <div class="product-goal__cabecera"><h2 id="titulo-product-goal">Product Goal</h2><button type="button" data-editar-goal>Editar</button></div>
+           <div class="product-goal__cabecera"><h2 id="titulo-product-goal">Product Goal</h2>${esProductOwner ? `<button type="button" data-editar-goal>Editar</button>` : ""}</div>
           <p data-texto-goal>${escaparHtml(backlog.productGoal) || "Define el objetivo que orientará las decisiones del Product Backlog."}</p>
           <form class="product-goal__formulario" data-formulario-goal hidden>
             <textarea name="productGoal" rows="2" aria-label="Product Goal">${escaparHtml(backlog.productGoal)}</textarea>
@@ -196,7 +200,8 @@ export async function inicializarBacklog(contenedor, projectId) {
           </form>
         </div>
       </section>
-      <section class="backlog-contenido" aria-labelledby="titulo-lista-backlog">
+       <p class="backlog__permisos">${esProductOwner ? "Como Product Owner puedes actualizar el Product Goal y el orden final del backlog." : "Puedes crear, editar y consultar elementos. El Product Owner mantiene el Product Goal y el orden final."}</p>
+       <section class="backlog-contenido" aria-labelledby="titulo-lista-backlog">
         <div class="backlog-contenido__cabecera"><div><h2 id="titulo-lista-backlog">Elementos del producto</h2><p>Los primeros elementos representan la prioridad más alta.</p></div><span data-conteo-backlog></span></div>
         <div data-lista-backlog></div>
       </section>
@@ -244,6 +249,19 @@ export async function inicializarBacklog(contenedor, projectId) {
       contenedor.querySelector("[data-division]").hidden = false;
       contenedor.querySelector(".panel-backlog__acciones").hidden = true;
       contenedor.querySelector("[name='parte']").focus();
+    }
+    if (evento.target.closest("[data-retirar-elemento]")) {
+      if (!puedeAdministrar) return;
+      if (!window.confirm("¿Retirar este elemento del Product Backlog?")) return;
+      try {
+        const resultado = await retirarElementoBacklog(projectId, elementoActivo.elementoBacklogId);
+        backlog = await obtenerProductBacklog(projectId);
+        cerrarPanel();
+        actualizarLista();
+        anunciar(resultado.resultado === "RETIRADO" ? "Elemento retirado del Product Backlog" : "Elemento eliminado del Product Backlog");
+      } catch (error) {
+        contenedor.querySelector("[data-estado-panel]").textContent = error.message;
+      }
     }
     if (evento.target.closest("[data-cancelar-division]")) {
       contenedor.querySelector("[data-division]").hidden = true;

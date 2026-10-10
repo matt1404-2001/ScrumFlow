@@ -12,15 +12,15 @@ const proyectosSimulados = {
         completeForActivation: true
       },
       currentSprint: {
-        sprintId: 22,
-        sprintGoal: "Dejar listo el flujo principal de seguimiento del proyecto.",
-        fechaInicio: "2026-10-06",
-        fechaFin: "2026-10-19",
+        sprintId: 7001,
+        sprintGoal: "Completar el acceso seguro y habilitar la creación de cuentas",
+        fechaInicio: "2026-10-12",
+        fechaFin: "2026-10-23",
         estado: "ACTIVO"
       },
       progress: {
-        percentage: 46,
-        counts: { pendiente: 4, enProgreso: 3, terminado: 6 }
+        percentage: 33,
+        counts: { pendiente: 1, enProgreso: 1, terminado: 1 }
       },
       dailyToday: { dailyDisponible: true, dailyId: null, estado: "PROGRAMADA" },
       openImpediments: 2,
@@ -87,6 +87,7 @@ const proyectosSimulados = {
 
 // Mantiene la misma frontera que tendrá GET /api/proyectos/{projectId}/resumen.
 export async function obtenerResumenProyecto(projectId) {
-  const datos = proyectosSimulados[String(projectId)] ?? proyectosSimulados["101"];
+  const datos = proyectosSimulados[String(projectId)];
+  if (!datos) throw new Error("No fue posible encontrar el proyecto.");
   return structuredClone(datos);
 }

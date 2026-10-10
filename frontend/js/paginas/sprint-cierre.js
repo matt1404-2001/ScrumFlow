@@ -57,7 +57,7 @@ function renderizarListaTrabajo(items, tipo) {
 }
 
 function renderizarEnlaceEvento(evento, etiqueta) {
-  return `<a class="enlace-evento" href="#reuniones" data-evento-scrum="${evento}">${etiqueta}<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4"></path></svg></a>`;
+  return `<a class="enlace-evento" href="#reuniones/${evento}" data-evento-scrum="${evento}">${etiqueta}<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4"></path></svg></a>`;
 }
 
 export function renderizarSprintEnCierre(sprint, cierre) {
@@ -117,6 +117,16 @@ export function renderizarSprintFinalizado(sprint, cierre) {
       <section class="consulta-identidad" aria-labelledby="titulo-goal-finalizado">
         <div><span>Sprint Goal</span><h2 id="titulo-goal-finalizado">${escaparHtml(sprint.sprintGoal)}</h2></div>
         <dl><div><dt>Inicio</dt><dd>${formatearFecha(sprint.fechaInicio)}</dd></div><div><dt>Fin</dt><dd>${formatearFecha(sprint.fechaFin)}</dd></div><div><dt>Estimación</dt><dd>${sprint.estimacionTotal} puntos</dd></div></dl>
+      </section>
+
+      <section class="cierre-siguiente sprint-continuacion" aria-labelledby="titulo-continuar-sprint">
+        <span>Siguiente ciclo</span>
+        <h2 id="titulo-continuar-sprint">Continúa el trabajo del producto</h2>
+        <p>Refina lo aprendido en el Product Backlog y prepara el siguiente Sprint cuando el equipo esté listo.</p>
+        <div class="sprint-continuacion__acciones">
+          <a class="enlace-evento enlace-evento--secundario" href="#product-backlog">Refinar Backlog<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4"></path></svg></a>
+          <button class="enlace-evento" type="button" data-planificar-sprint>Planificar siguiente Sprint<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4"></path></svg></button>
+        </div>
       </section>
 
       <div class="consulta-trabajo">
