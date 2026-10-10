@@ -50,6 +50,11 @@ if (raiz) {
       return;
     }
 
+    if (tipoVista === "login") {
+      window.location.href = "../proyectos/";
+      return;
+    }
+
     estado.textContent = "La conexión con el backend se habilitará próximamente.";
   });
 }
