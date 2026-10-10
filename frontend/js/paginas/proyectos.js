@@ -67,7 +67,7 @@ function crearTarjetaProyecto(proyecto) {
   return `
     <a
       class="tarjeta-proyecto"
-      href="../proyecto/?projectId=${proyecto.projectId}"
+      href="../paginas/resumen.html?projectId=${proyecto.projectId}"
       aria-label="Abrir proyecto ${escaparHtml(proyecto.nombre)}"
     >
       <div class="tarjeta-proyecto__encabezado">

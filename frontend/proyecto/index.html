@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Espacio de trabajo principal del proyecto en ScrumFlow.">
+    <meta name="theme-color" content="#ffffff">
+    <title>Resumen del proyecto | ScrumFlow</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233156d9'/%3E%3Cpath d='M8 10h16M8 16h10M8 22h6' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='22' r='2.5' fill='white'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/paginas/proyecto.css">
+    <link rel="stylesheet" href="../css/paginas/backlog.css">
+    <script type="module" src="../js/paginas/proyecto.js"></script>
+  </head>
+  <body class="pagina-proyecto">
+    <!--
+      THESIS: El proyecto se siente como un espacio de trabajo continuo, no como una sucesión de páginas desconectadas.
+      OWN-WORLD: Lienzo operativo claro, azul profundo, navegación fría y superficies blancas de la identidad actual.
+      STORY: La persona confirma proyecto y cuenta, elige un área y conserva siempre el mismo contexto visual.
+      FIRST VIEWPORT: Cabecera compacta arriba, menú estable a la izquierda y contenido actual amplio a la derecha.
+      FORM: Extensión directa y acotada de la interfaz existente para una superficie Operate.
+      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+    -->
+    <a class="saltar-contenido" href="#contenido-proyecto">Saltar al contenido principal</a>
+
+    <header class="cabecera-proyecto">
+      <a class="marca" href="../" aria-label="ScrumFlow, página de inicio">
+        <svg class="marca__simbolo" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M7 9.5h18M7 16h12M7 22.5h7"></path>
+          <circle cx="25" cy="22.5" r="2.5"></circle>
+        </svg>
+        <span>ScrumFlow</span>
+      </a>
+
+      <a class="proyecto-actual" href="../proyectos/" aria-label="Cambiar de proyecto">
+        <span class="proyecto-actual__simbolo" aria-hidden="true">
+          <svg viewBox="0 0 20 20"><path d="M3.5 6.5h13v10h-13zM7 6.5V4.8c0-.7.6-1.3 1.3-1.3h3.4c.7 0 1.3.6 1.3 1.3v1.7M3.5 10h13"></path></svg>
+        </span>
+        <span class="proyecto-actual__texto">
+          <span>Proyecto actual</span>
+          <strong data-nombre-proyecto>Sistema de Gestión Scrum</strong>
+        </span>
+        <svg class="proyecto-actual__flecha" viewBox="0 0 16 16" aria-hidden="true"><path d="m5 6 3 3 3-3"></path></svg>
+      </a>
+
+      <div class="perfil-usuario" aria-label="Cuenta de usuario: María López">
+        <span class="perfil-usuario__avatar" aria-hidden="true">ML</span>
+        <span class="perfil-usuario__datos">
+          <strong>María López</strong>
+          <span>Administrador</span>
+        </span>
+      </div>
+    </header>
+
+    <div class="estructura-proyecto">
+      <aside class="barra-lateral">
+        <nav class="navegacion-proyecto" aria-label="Secciones del proyecto">
+          <a class="navegacion-proyecto__enlace" href="#resumen" data-seccion="resumen">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10.2 10 4l6.5 6.2v6.3h-4.2v-4.2H7.7v4.2H3.5z"></path></svg>
+            <span>Resumen</span>
+          </a>
+          <a class="navegacion-proyecto__enlace" href="#product-backlog" data-seccion="product-backlog">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4h10v12H6zM3.5 7.5H6M3.5 12.5H6M9 8h4M9 11h4"></path></svg>
+            <span>Product Backlog</span>
+          </a>
+          <a class="navegacion-proyecto__enlace" href="#sprint" data-seccion="sprint">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3.5a6.5 6.5 0 1 1-5.6 3.2M3.5 3.8v3.7h3.7M10 6.5V10l2.4 1.6"></path></svg>
+            <span>Sprint</span>
+          </a>
+          <a class="navegacion-proyecto__enlace" href="#reuniones" data-seccion="reuniones">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6.2 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM2.8 15.8v-2.1c0-1.6 1.5-2.8 3.4-2.8s3.4 1.2 3.4 2.8v2.1M13.8 9a2.5 2.5 0 1 0 0-5M11.8 11.2c.6-.2 1.2-.3 2-.3 1.9 0 3.4 1.2 3.4 2.8v2.1"></path></svg>
+            <span>Reuniones</span>
+          </a>
+          <a class="navegacion-proyecto__enlace" href="#equipo" data-seccion="equipo">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 9a2.6 2.6 0 1 0 0-5.2A2.6 2.6 0 0 0 7 9ZM2.8 16v-2c0-1.7 1.8-3 4.2-3s4.2 1.3 4.2 3v2M13.5 9.2a2.3 2.3 0 1 0 0-4.6M12.8 11.2c2.5-.3 4.4.9 4.4 2.8v2"></path></svg>
+            <span>Equipo</span>
+          </a>
+        </nav>
+
+        <a class="volver-proyectos" href="../proyectos/">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10H5M9 6l-4 4 4 4"></path></svg>
+          <span>Todos los proyectos</span>
+        </a>
+      </aside>
+
+      <main id="contenido-proyecto" class="contenido-proyecto" tabindex="-1" aria-live="polite">
+        <div class="contenido-proyecto__interior" data-contenido-seccion></div>
+      </main>
+    </div>
+  </body>
+</html>
