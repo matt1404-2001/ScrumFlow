@@ -57,7 +57,7 @@ function renderizarListaTrabajo(items, tipo) {
 }
 
 function renderizarEnlaceEvento(evento, etiqueta) {
-  return `<a class="enlace-evento" href="#reuniones" data-evento-scrum="${evento}">${etiqueta}<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4"></path></svg></a>`;
+  return `<a class="enlace-evento" href="#reuniones/${evento}" data-evento-scrum="${evento}">${etiqueta}<svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4"></path></svg></a>`;
 }
 
 export function renderizarSprintEnCierre(sprint, cierre) {

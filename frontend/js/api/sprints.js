@@ -291,6 +291,26 @@ export async function obtenerResumenCierreSprint(projectId, sprintId) {
   return structuredClone(cierre);
 }
 
+export async function actualizarEstadoCierreSprint(projectId, sprintId, cambios) {
+  const claveProyecto = String(projectId);
+  const sprint = sprintsSimulados[claveProyecto] ?? sprintsFinalizadosSimulados[claveProyecto];
+  const cierre = cierresSimulados[String(sprintId)];
+  if (!sprint || sprint.sprintId !== Number(sprintId) || !cierre) {
+    throw new Error("No se encontró el cierre del Sprint solicitado");
+  }
+  if (cambios.review) cierre.review = structuredClone(cambios.review);
+  if (cambios.retrospective) cierre.retrospective = structuredClone(cambios.retrospective);
+  if (cambios.finalizarSprint) {
+    sprint.estado = "FINALIZADO";
+    sprint.fechaFinalizacion = cambios.fechaFinalizacion ?? new Date().toISOString();
+    if (sprintsSimulados[claveProyecto]) {
+      sprintsFinalizadosSimulados[claveProyecto] = await crearResumen(projectId, sprint);
+      sprintsSimulados[claveProyecto] = null;
+    }
+  }
+  return structuredClone(cierre);
+}
+
 export async function crearBorradorSprint(projectId, datos = {}) {
   const clave = String(projectId);
   if (sprintsSimulados[clave]) throw new Error("Ya existe un Sprint sin finalizar en este proyecto");

@@ -1,5 +1,6 @@
 import { inicializarBacklog } from "./backlog.js";
 import { inicializarResumen } from "./resumen.js";
+import { inicializarReuniones } from "./reuniones.js";
 import { inicializarSprint } from "./sprint.js";
 
 const proyectos = {
@@ -63,7 +64,7 @@ const enlaces = document.querySelectorAll("[data-seccion]");
 let seccionActiva = "resumen";
 
 function obtenerSeccionActual() {
-  const seccionSolicitada = window.location.hash.slice(1);
+  const seccionSolicitada = window.location.hash.slice(1).split("/")[0];
   if (secciones[seccionSolicitada]) seccionActiva = seccionSolicitada;
   return seccionActiva;
 }
@@ -109,6 +110,14 @@ async function renderizarSeccion() {
     contenido.innerHTML = `<div class="sprint-cargando" role="status"><span></span>Cargando Sprint…</div>`;
     document.title = `${seccion.titulo} · ${proyecto.nombre} | ScrumFlow`;
     await inicializarSprint(contenido, parametros.get("projectId") ?? "101");
+    return;
+  }
+
+  if (clave === "reuniones") {
+    contenido.innerHTML = `<div class="reuniones-cargando" role="status"><span></span>Cargando reuniones de cierre…</div>`;
+    document.title = `${seccion.titulo} · ${proyecto.nombre} | ScrumFlow`;
+    const eventoSolicitado = window.location.hash.slice(1).split("/")[1] ?? null;
+    await inicializarReuniones(contenido, parametros.get("projectId") ?? "101", eventoSolicitado, proyecto.rol === "Administrador");
     return;
   }
 
